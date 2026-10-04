@@ -105,6 +105,15 @@ describe('thi thử', () => {
     expect(app.s.game).toMatchObject({ xp: 5, examsDone: 1 });
     expect(app.s.game.days[TODAY].answered).toBe(1);
   });
+  it('không tạo đề mới khi đang có bài làm dở', () => {
+    const app = setup();
+    app.s.startExam(cfg);
+    app.s.examSelect('A');
+    const before = app.s.examCurrent;
+    app.s.startExam(cfg);
+    expect(app.s.examCurrent).toBe(before);
+    expect(app.s.examCurrent!.id).toBe(before!.id);
+  });
   it('hết giờ thì checkExamExpiry tự nộp', () => {
     const app = setup();
     app.s.startExam({ ...cfg, minutes: 5 });

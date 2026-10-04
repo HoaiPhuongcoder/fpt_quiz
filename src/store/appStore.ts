@@ -165,6 +165,7 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
       },
 
       startExam(cfg) {
+        if (get().examCurrent) return;
         const t = now();
         set({ now: t, examCurrent: createExam(get().questions, cfg, t, rand) });
       },
