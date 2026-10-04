@@ -41,7 +41,8 @@ describe('srs', () => {
           expect(nivl).toBe(livl);
           a = la;
           b = nb;
-          now = nb.due;
+          // Date.now() under fake timers always returns integer, so truncate due to match legacy behavior
+          now = Math.trunc(nb.due);
         }
       }
     });

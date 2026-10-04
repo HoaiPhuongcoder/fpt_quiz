@@ -22,7 +22,6 @@ export const DEFAULT_CONFIG: SrsConfig = { preset: 'cram', ...presetParams('cram
  */
 export function schedule(c0: CardInput, r: Rating, P: SrsParams, now: number): [Card, number] {
   const c = { ...c0 } as Card;
-  now = Math.trunc(now);  // Match Date.now() behavior (always integer)
   let ivl: number;
   if (c.ease == null) c.ease = P.startEase;
   if (c.st === 'new' || c.st === 'learn' || c.st === 'relearn') {
