@@ -8,25 +8,9 @@ import '@fontsource/space-grotesk/500.css';
 import '@fontsource/space-grotesk/700.css';
 import './index.css';
 import { App } from './App';
-import { createAppStore, setAppStore } from './store/appStore';
-import { createLocalStorage } from './storage/local';
-import { QUESTIONS } from './data/questions';
+import { bootstrapApp } from './bootstrap';
 
-let warned = false;
-const storage = createLocalStorage({
-  onError: () => {
-    if (warned) return;
-    warned = true;
-    store.getState().pushToast('Không lưu được tiến độ trên máy này', 'error');
-  },
-});
-const store = createAppStore({ storage, questions: QUESTIONS });
-setAppStore(store);
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') storage.flush();
-});
-window.addEventListener('pagehide', () => storage.flush());
+bootstrapApp();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
