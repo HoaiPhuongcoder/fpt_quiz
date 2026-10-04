@@ -5,12 +5,21 @@ import { AppShell } from './components/AppShell';
 import { Toaster } from './components/Toaster';
 import { Home } from './screens/Home';
 import { Study } from './screens/study/Study';
+import { ExamSetup } from './screens/exam/ExamSetup';
+import { Exam } from './screens/exam/Exam';
+import { ExamResultScreen } from './screens/exam/ExamResult';
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
     // Task 11–14 thêm `case` cho từng màn hình vào đây.
     case 'study':
       return <Study />;
+    case 'exam-setup':
+      return <ExamSetup />;
+    case 'exam':
+      return <Exam />;
+    case 'result':
+      return <ExamResultScreen id={route.param} />;
     default:
       return <Home />;
   }
