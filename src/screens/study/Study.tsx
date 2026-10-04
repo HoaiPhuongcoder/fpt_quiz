@@ -29,14 +29,8 @@ export function Study() {
 
   useEffect(() => { startStudy(); }, [startStudy]);
   // Khi đang chờ, mỗi lần đồng hồ `now` nhích thì thử lấy thẻ mới đến hạn.
-  // `nextCard` tự ghi `now`; ghi nhớ giá trị đó để không tự kích hoạt lại vòng lặp vô hạn.
-  const ownNow = useRef<number | null>(null);
   useEffect(() => {
-    if (now === ownNow.current) return;
-    if (getAppStore().getState().study.cur == null) {
-      nextCard();
-      ownNow.current = getAppStore().getState().now;
-    }
+    if (getAppStore().getState().study.cur == null) nextCard();
   }, [now, nextCard]);
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0; }, [study.cur]);
   useEffect(() => {

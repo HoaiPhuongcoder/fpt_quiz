@@ -23,6 +23,13 @@ function answerRight(app: ReturnType<typeof setup>) {
 }
 
 describe('phiên học', () => {
+  it('nextCard không đổi now', () => {
+    const app = setup();
+    app.s.startStudy();
+    app.advance(5 * MIN);
+    app.s.nextCard();
+    expect(app.s.now).toBe(T0);
+  });
   it('bắt đầu học lấy thẻ mới đầu tiên', () => {
     const app = setup();
     app.s.startStudy();

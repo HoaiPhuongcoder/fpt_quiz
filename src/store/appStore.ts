@@ -112,7 +112,7 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
         const n = pickNext(poolFor(s.questions, s.cfg.chs), s.cards, t, {
           newPerDay: s.cfg.newPerDay, newSeen: s.day.newSeen, order: s.cfg.order, ahead: s.study.ahead, rand,
         });
-        set({ now: t, study: { ...s.study, cur: n, picked: [], shown: false, correct: false, lastXp: null } });
+        set({ study: { ...s.study, cur: n, picked: [], shown: false, correct: false, lastXp: null } });
       },
 
       choose(key) {
