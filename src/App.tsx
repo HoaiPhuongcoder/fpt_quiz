@@ -9,6 +9,8 @@ import { ExamSetup } from './screens/exam/ExamSetup';
 import { Exam } from './screens/exam/Exam';
 import { ExamResultScreen } from './screens/exam/ExamResult';
 import { Library } from './screens/Library';
+import { Profile } from './screens/Profile';
+import { Settings } from './screens/settings/Settings';
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -23,6 +25,10 @@ function Screen({ route }: { route: Route }) {
       return <ExamResultScreen id={route.param} />;
     case 'library':
       return <Library />;
+    case 'profile':
+      return <Profile />;
+    case 'settings':
+      return <Settings />;
     default:
       return <Home />;
   }
