@@ -4,10 +4,13 @@ import { useApp } from './store/appStore';
 import { AppShell } from './components/AppShell';
 import { Toaster } from './components/Toaster';
 import { Home } from './screens/Home';
+import { Study } from './screens/study/Study';
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
     // Task 11–14 thêm `case` cho từng màn hình vào đây.
+    case 'study':
+      return <Study />;
     default:
       return <Home />;
   }
