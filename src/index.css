@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+@theme {
+  --color-ink: #eae6ff;
+  --color-mut: #a49bd6;
+  --color-dim: #6f6896;
+  --color-violet: #8b5cf6;
+  --color-violet-soft: #c4b5fd;
+  --color-cyan: #22d3ee;
+  --color-new: #67e8f9;
+  --color-ok: #a3e635;
+  --color-bad: #f43f5e;
+  --color-bad-soft: #fb7185;
+  --color-relearn: #f472b6;
+  --color-streak: #ffa25c;
+  --color-flag: #fbbf24;
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-num: "Space Grotesk", "Be Vietnam Pro", sans-serif;
+  --animate-xp: xp-float 900ms ease-out forwards;
+
+  @keyframes xp-float {
+    0% { opacity: 0; transform: translateY(6px); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-14px); }
+  }
+}
+
+@utility bg-app {
+  background: radial-gradient(circle at 15% 0%, #3b1d6e 0%, #1a1433 35%, #0f0c20 75%) fixed;
+}
+
+@layer base {
+  html { color-scheme: dark; -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-app font-sans text-ink antialiased min-h-dvh; }
+  :focus-visible { outline: 2px solid var(--color-violet); outline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
