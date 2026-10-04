@@ -6,6 +6,12 @@ Ngày: 2026-10-04 · Trạng thái: chờ duyệt
 
 Chuyển `QUIZ.html` (một file 357KB, React qua CDN, 645 câu HCM202 nhúng sẵn, lưu `localStorage`) thành một web app có cấu trúc, dùng tốt trên điện thoại và laptop, cài được như app (PWA), thêm **Thi thử** và **game hóa**, giao diện mới theo phong cách **tối, neon, kính mờ**.
 
+**Chế độ học chính vẫn là lặp lại ngắt quãng kiểu Anki, giữ nguyên 100% như QUIZ.html:**
+- thuật toán, hàng đợi thẻ, 4 nút chấm Lại/Khó/Được/Dễ;
+- 2 chế độ có sẵn (Thi gấp, Giống Anki mặc định) và các ô tùy chỉnh.
+
+Thi thử và game hóa chỉ là phần thêm, không thay đổi cách tính lịch ôn (xem mục 6.1).
+
 ### Phạm vi
 
 - Chỉ môn HCM202. Không có nhiều môn.
