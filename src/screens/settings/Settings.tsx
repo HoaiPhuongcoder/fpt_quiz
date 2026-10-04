@@ -81,6 +81,9 @@ export function Settings() {
   };
   const doReset = () => {
     resetAll();
+    setForm(toForm(getAppStore().getState().cfg));
+    setGoal(getAppStore().getState().game.goalTarget);
+    setIo('');
     setConfirm(null);
     setMsg('Đã xóa toàn bộ tiến độ.');
   };

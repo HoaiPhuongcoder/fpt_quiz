@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { FireIcon, GearSixIcon } from '@phosphor-icons/react';
 import { useApp } from '../store/appStore';
 import { Glass, ProgressBar, XpRing } from '../components/ui';
@@ -19,6 +19,8 @@ export function Profile() {
   const questions = useApp((s) => s.questions);
   const now = useApp((s) => s.now);
   const last = useApp((s) => s.examHistory[0]);
+  const [picked, setPicked] = useState<string | null>(null);
+  const pickedBadge = BADGES.find((b) => b.id === picked);
   const lv = levelInfo(game.xp);
   const today = dayKey(now);
   const mature = useMemo(() => questions.filter((q) => isMature(cards[q.n])).length, [questions, cards]);
@@ -73,8 +75,13 @@ export function Profile() {
           <span className="text-mut"><span className="font-num">{Object.keys(game.badges).length}</span> / <span className="font-num">{BADGES.length}</span></span>
         </div>
         <div className="grid grid-cols-4 gap-2.5">
-          {BADGES.map((b) => <BadgeTile key={b.id} badge={b} unlockedAt={game.badges[b.id]} />)}
+          {BADGES.map((b) => <BadgeTile key={b.id} badge={b} unlockedAt={game.badges[b.id]} selected={picked === b.id} onSelect={() => setPicked(picked === b.id ? null : b.id)} />)}
         </div>
+        {pickedBadge && (
+          <p role="status" className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm">
+            <b>{pickedBadge.name}</b> — {pickedBadge.desc} ({game.badges[pickedBadge.id] != null ? 'đã mở' : 'chưa mở'})
+          </p>
+        )}
       </section>
 
       <Glass className="grid grid-cols-2 gap-3 p-4 text-sm">

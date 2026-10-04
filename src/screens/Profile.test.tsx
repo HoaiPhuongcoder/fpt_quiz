@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Profile } from './Profile';
 import { createAppStore, setAppStore } from '../store/appStore';
 import { createMemoryStorage, makeQ } from '../../test/fixtures';
@@ -13,4 +14,12 @@ it('hiện cấp độ, 20 huy hiệu và huy hiệu đã mở', () => {
   expect(screen.getByTitle('Ôn bài trong khoảng 23:00–03:59')).toHaveAttribute('data-unlocked', 'true');
   expect(screen.getByTitle('Học 3 ngày liên tiếp')).toHaveAttribute('data-unlocked', 'false');
   expect(screen.getByRole('link', { name: 'Cài đặt' })).toHaveAttribute('href', '#/cai-dat');
+});
+
+it('bấm vào huy hiệu chưa mở thì hiện điều kiện', async () => {
+  setAppStore(createAppStore({ storage: createMemoryStorage(), questions: [makeQ(1)] }));
+  render(<Profile />);
+  await userEvent.setup().click(screen.getByRole('button', { name: /Chuỗi 3 ngày/ }));
+  expect(screen.getByRole('status')).toHaveTextContent('Học 3 ngày liên tiếp');
+  expect(screen.getByRole('status')).toHaveTextContent('chưa mở');
 });

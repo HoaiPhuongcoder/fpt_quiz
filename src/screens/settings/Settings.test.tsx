@@ -28,3 +28,16 @@ it('nhập tiến độ cũ sau khi xác nhận ghi đè', async () => {
   expect(store.getState().cards[1]).toEqual(makeCard());
   expect(screen.getByRole('status')).toHaveTextContent('Đã nhập tiến độ từ bản cũ (QUIZ.html).');
 });
+
+it('xóa tiến độ thì ô mục tiêu quay về mặc định', async () => {
+  const user = userEvent.setup();
+  render(<Settings />);
+  const goal = screen.getByLabelText(/Số câu mỗi ngày/);
+  fireEvent.change(goal, { target: { value: '200' } });
+  fireEvent.blur(goal);
+  expect(store.getState().game.goalTarget).toBe(200);
+  await user.click(screen.getByRole('button', { name: /Xóa toàn bộ tiến độ/ }));
+  await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Xóa hết' }));
+  expect(store.getState().game.goalTarget).toBe(50);
+  expect(goal).toHaveValue(50);
+});

@@ -15,15 +15,15 @@ const TONE: Record<BadgeGroup, string> = {
   fun: 'border-relearn/50 bg-relearn/10 text-relearn shadow-[0_0_14px_rgba(244,114,182,.35)]',
 };
 
-export function BadgeTile({ badge, unlockedAt }: { badge: BadgeDef; unlockedAt?: number }) {
+export function BadgeTile({ badge, unlockedAt, selected = false, onSelect }: { badge: BadgeDef; unlockedAt?: number; selected?: boolean; onSelect?: () => void }) {
   const on = unlockedAt != null;
   const I = ICONS[badge.icon];
   return (
-    <div data-testid="badge" data-unlocked={on} title={badge.desc} className="text-center text-[10.5px] leading-tight">
+    <button type="button" data-testid="badge" data-unlocked={on} title={badge.desc} aria-pressed={selected} aria-label={`${badge.name}: ${badge.desc}`} onClick={onSelect} className="block w-full text-center text-[10.5px] leading-tight">
       <div className={`mb-1 grid h-14 place-items-center rounded-2xl border ${on ? TONE[badge.group] : 'border-white/10 bg-white/5 text-dim'}`}>
         {on ? <I weight="duotone" size={30} /> : <LockSimpleIcon weight="duotone" size={24} />}
       </div>
       <span className={on ? '' : 'text-dim'}>{badge.name}</span>
-    </div>
+    </button>
   );
 }
