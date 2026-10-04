@@ -29,8 +29,8 @@ Thi thử và game hóa chỉ là phần thêm, không thay đổi cách tính l
 
 | Hạng mục | Lựa chọn |
 |---|---|
-| Build | Vite + React 18 + TypeScript |
-| Style | Tailwind CSS (token màu neon khai báo trong config) |
+| Build | Vite 8 + React 19 + TypeScript |
+| Style | Tailwind CSS 4 (token màu neon khai báo bằng `@theme` trong CSS) |
 | State | Zustand |
 | Icon | `@phosphor-icons/react`: kiểu duotone cho thẻ thống kê và huy hiệu, kiểu fill cho tab đang chọn và trạng thái đúng/sai, kiểu regular cho phần còn lại. Không dùng emoji hệ thống trong giao diện. |
 | Font | Be Vietnam Pro cho mọi chữ tiếng Việt. Space Grotesk chỉ dùng cho số (XP, điểm, đồng hồ) vì font này thiếu dấu tiếng Việt. Hai font tự host qua `@fontsource` để chạy được khi offline. |
@@ -106,7 +106,7 @@ type GameState = {
   xp: number;
   bestCombo: number;
   streak: { count: number; lastDay: string | null };   // ngày dạng YYYY-MM-DD theo giờ máy
-  days: Record<string, { reviewed: number; examsDone: number; goalHit: boolean }>; // giữ 60 ngày gần nhất
+  days: Record<string, { reviewed: number; answered: number; examsDone: number; goalHit: boolean }>; // giữ 60 ngày gần nhất; answered = thẻ đã chấm + câu thi đã làm (dùng cho mục tiêu ngày)
   goalTarget: number;              // mặc định 50
   goalHits: number;
   examsDone: number;
@@ -124,7 +124,8 @@ type ExamSession = {
   answers: Record<number, string[]>; flagged: number[]; current: number;
 };
 type ExamResult = {
-  id: string; finishedAt: number; score10: number; correct: number; total: number;
+  id: string; startedAt: number; finishedAt: number; score10: number; correct: number; total: number;
+  answeredCount: number; wrong: number[]; xp: number; newBadges: string[];
   byChapter: Record<number, { correct: number; total: number }>;
   items: ExamSession['items']; answers: ExamSession['answers'];
 };
