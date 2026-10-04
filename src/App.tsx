@@ -8,6 +8,7 @@ import { Study } from './screens/study/Study';
 import { ExamSetup } from './screens/exam/ExamSetup';
 import { Exam } from './screens/exam/Exam';
 import { ExamResultScreen } from './screens/exam/ExamResult';
+import { Library } from './screens/Library';
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -20,6 +21,8 @@ function Screen({ route }: { route: Route }) {
       return <Exam />;
     case 'result':
       return <ExamResultScreen id={route.param} />;
+    case 'library':
+      return <Library />;
     default:
       return <Home />;
   }
