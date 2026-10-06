@@ -7,9 +7,9 @@ beforeEach(() => {
   setAppStore(createAppStore({ storage: createMemoryStorage(), questions: [makeQ(1), makeQ(2)] }));
 });
 
-it('hiện trang chủ với 4 tab điều hướng', () => {
+it('hiện trang chủ với 5 tab điều hướng', () => {
   render(<App />);
-  for (const name of ['Trang chủ', 'Thi thử', 'Thư viện', 'Hồ sơ']) {
+  for (const name of ['Trang chủ', 'Thi thử', 'Thư viện', 'Tìm kiếm', 'Hồ sơ']) {
     expect(screen.getByRole('link', { name })).toBeInTheDocument();
   }
   expect(screen.getByText('Sẵn sàng')).toBeInTheDocument();

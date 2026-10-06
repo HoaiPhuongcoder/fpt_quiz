@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
-import { BooksIcon, HouseIcon, TimerIcon, UserCircleIcon, type Icon } from '@phosphor-icons/react';
+import { BooksIcon, HouseIcon, MagnifyingGlassIcon, TimerIcon, UserCircleIcon, type Icon } from '@phosphor-icons/react';
 import type { RouteName } from '../router';
 
 const TABS: { path: string; label: string; Icon: Icon; match: RouteName[] }[] = [
   { path: '/', label: 'Trang chủ', Icon: HouseIcon, match: ['home'] },
   { path: '/thi', label: 'Thi thử', Icon: TimerIcon, match: ['exam-setup', 'result'] },
   { path: '/thu-vien', label: 'Thư viện', Icon: BooksIcon, match: ['library'] },
+  { path: '/tim-kiem', label: 'Tìm kiếm', Icon: MagnifyingGlassIcon, match: ['search'] },
   { path: '/ho-so', label: 'Hồ sơ', Icon: UserCircleIcon, match: ['profile', 'settings'] },
 ];
 
@@ -14,7 +15,7 @@ export function AppShell({ active, children }: { active: RouteName; children: Re
     <div className="min-h-dvh lg:flex">
       <nav
         aria-label="Điều hướng chính"
-        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t border-white/10 bg-[#0a0816]/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:sticky lg:top-0 lg:bottom-auto lg:flex lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:gap-1 lg:border-t-0 lg:border-r lg:p-4"
+        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t border-white/10 bg-[#0a0816]/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:sticky lg:top-0 lg:bottom-auto lg:flex lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:gap-1 lg:border-t-0 lg:border-r lg:p-4"
       >
         <p className="hidden px-3 pb-4 pt-2 text-lg font-bold lg:block">
           Ôn <span className="text-violet-soft">HCM202</span>

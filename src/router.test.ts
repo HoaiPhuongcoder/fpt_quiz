@@ -9,6 +9,7 @@ describe('parseHash', () => {
     ['#/lam-bai', { name: 'exam' }],
     ['#/ket-qua/exam-1', { name: 'result', param: 'exam-1' }],
     ['#/thu-vien', { name: 'library' }],
+    ['#/tim-kiem', { name: 'search' }],
     ['#/ho-so', { name: 'profile' }],
     ['#/cai-dat', { name: 'settings' }],
     ['#/khong-co', { name: 'home' }],
