@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "fpt-quiz.vercel.app" }],
+      "destination": "https://hoaiphuong.io.vn/:path*",
+      "statusCode": 301
+    }
+  ]
+}
