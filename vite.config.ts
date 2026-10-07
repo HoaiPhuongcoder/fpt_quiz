@@ -1,8 +1,11 @@
 /// <reference types="vitest/config" />
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+const page = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -28,9 +31,22 @@ export default defineConfig({
           { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,woff,woff2,png,svg,ico}'] },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,woff,woff2,png,svg,ico}'],
+        // Trang tĩnh phải tải đúng HTML của nó, không bị thay bằng app.
+        navigateFallbackDenylist: [/^\/gioi-thieu/, /^\/chinh-sach-quyen-rieng-tu/],
+      },
     }),
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: page('./index.html'),
+        about: page('./gioi-thieu/index.html'),
+        privacy: page('./chinh-sach-quyen-rieng-tu/index.html'),
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

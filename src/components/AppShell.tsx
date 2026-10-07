@@ -35,7 +35,13 @@ export function AppShell({ active, children }: { active: RouteName; children: Re
           );
         })}
       </nav>
-      <main className="mx-auto w-full max-w-[560px] px-4 pb-28 pt-[calc(env(safe-area-inset-top)+16px)] lg:pb-12 lg:pt-10">{children}</main>
+      <main className="mx-auto w-full max-w-[560px] px-4 pb-28 pt-[calc(env(safe-area-inset-top)+16px)] lg:pb-12 lg:pt-10">
+        {children}
+        <footer className="mt-10 flex justify-center gap-4 text-xs text-dim">
+          <a href="/gioi-thieu/" className="hover:text-mut">Giới thiệu</a>
+          <a href="/chinh-sach-quyen-rieng-tu/" className="hover:text-mut">Chính sách quyền riêng tư</a>
+        </footer>
+      </main>
     </div>
   );
 }
