@@ -71,7 +71,7 @@ function AboutDialog({ onClose }: { onClose: () => void }) {
 
       <Section title="Tiến độ lưu ở đâu?">
         <p>
-          Ngay trên trình duyệt của bạn, không gửi lên máy chủ nào. Xóa dữ liệu trình duyệt là mất tiến độ, nên thỉnh thoảng vào <b className="text-ink">Hồ sơ → Cài đặt</b> để xuất bản sao lưu. Xem thêm <a href="/chinh-sach-quyen-rieng-tu/" className="text-violet-soft underline">Chính sách quyền riêng tư</a>.
+          Ngay trên trình duyệt của bạn, không gửi lên máy chủ nào. Web chỉ gửi một mã ngẫu nhiên kèm môn đang chọn để đếm số người đang học cùng lúc. Xóa dữ liệu trình duyệt là mất tiến độ, nên thỉnh thoảng vào <b className="text-ink">Hồ sơ → Cài đặt</b> để xuất bản sao lưu. Xem thêm <a href="/chinh-sach-quyen-rieng-tu/" className="text-violet-soft underline">Chính sách quyền riêng tư</a>.
         </p>
       </Section>
 

@@ -4,6 +4,7 @@ import {
 import { useApp } from '../store/appStore';
 import { useChapterIds, useCounts } from '../store/hooks';
 import { Chip, Glass, NeonButton, ProgressBar, Stat, XpRing } from '../components/ui';
+import { OnlineBadge } from '../components/OnlineBadge';
 import { displayStreak, levelInfo } from '../domain/gamify';
 import { clock, dayKey } from '../domain/time';
 
@@ -38,6 +39,8 @@ export function Home() {
           <span className="font-num">{streak}</span>
         </div>
       </header>
+
+      <OnlineBadge />
 
       <Glass className="bg-linear-to-br from-violet/30 to-cyan/10 p-4">
         <p className="text-xs uppercase tracking-widest text-violet-soft">Sẵn sàng</p>

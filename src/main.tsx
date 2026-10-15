@@ -10,9 +10,11 @@ import './index.css';
 import { App } from './App';
 import { bootstrapApp } from './bootstrap';
 import { migrateHashUrl } from './router';
+import { startPresence } from './presence/online';
 
 migrateHashUrl();
-bootstrapApp();
+const { store } = bootstrapApp();
+void startPresence(store);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
