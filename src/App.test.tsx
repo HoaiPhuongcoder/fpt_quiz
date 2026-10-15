@@ -30,14 +30,14 @@ it('link cũ không có mã môn được đổi sang có mã môn; tab trỏ đ
   expect(document.title).toBe('Ôn HCM202');
 });
 
-it('đổi môn bằng nút ở header: ở lại cùng tab, tiêu đề và câu hỏi theo môn mới', async () => {
+it('đổi môn bằng thanh chọn môn ở đầu trang: ở lại cùng tab, tiêu đề và câu hỏi theo môn mới', async () => {
   const user = userEvent.setup();
   location.hash = '#/hcm202/';
   render(<App />);
-  await user.click(screen.getByRole('button', { name: /Đổi môn, đang học HCM202/ }));
-  await user.click(screen.getByRole('menuitemradio', { name: /MLN131/ }));
+  expect(screen.getByRole('radio', { name: /HCM202/ })).toBeChecked();
+  await user.click(screen.getByRole('radio', { name: /MLN131/ }));
   expect(location.hash).toBe('#/mln131/');
-  expect(await screen.findByRole('button', { name: /Đổi môn, đang học MLN131/ })).toBeInTheDocument();
+  expect(await screen.findByRole('radio', { name: /MLN131/, checked: true })).toBeInTheDocument();
   expect(document.title).toBe('Ôn MLN131');
   expect(screen.getByText('Có 1 thẻ đang chờ')).toBeInTheDocument();
 });
@@ -45,5 +45,5 @@ it('đổi môn bằng nút ở header: ở lại cùng tab, tiêu đề và câ
 it('mở link có mã môn khác thì chuyển sang môn đó', async () => {
   location.hash = '#/mln131/thu-vien';
   render(<App />);
-  expect(await screen.findByRole('button', { name: /đang học MLN131/ })).toBeInTheDocument();
+  expect(await screen.findByRole('radio', { name: /MLN131/, checked: true })).toBeInTheDocument();
 });

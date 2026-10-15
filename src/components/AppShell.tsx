@@ -38,7 +38,7 @@ export function AppShell({ active, children }: { active: RouteName; children: Re
         })}
       </nav>
       <main className="mx-auto w-full max-w-[560px] px-4 pb-28 pt-[calc(env(safe-area-inset-top)+16px)] lg:pb-12 lg:pt-10">
-        <SubjectSwitcher className="-ml-3 mb-2" />
+        <SubjectSwitcher className="mb-5" />
         {children}
         <footer className="mt-10 flex justify-center gap-4 text-xs text-dim">
           <a href="/gioi-thieu/" className="hover:text-mut">Giới thiệu</a>
