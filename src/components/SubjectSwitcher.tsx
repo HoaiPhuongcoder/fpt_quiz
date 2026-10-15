@@ -1,6 +1,6 @@
 import { CheckCircleIcon } from '@phosphor-icons/react';
 import { useApp } from '../store/appStore';
-import { parseHash, routePath } from '../router';
+import { navigate, parsePath, routePath } from '../router';
 
 /** Thanh chọn môn luôn hiện ở đầu trang: mỗi môn một ô, bấm là đổi ngay, ở lại cùng tab (trang thi/kết quả thì về Thi thử). */
 export function SubjectSwitcher({ className = '' }: { className?: string }) {
@@ -9,9 +9,9 @@ export function SubjectSwitcher({ className = '' }: { className?: string }) {
 
   const pick = (id: string) => {
     if (id === subject.id) return;
-    const r = parseHash(location.hash, subjects.map((s) => s.id));
+    const r = parsePath(location.pathname, subjects.map((s) => s.id));
     const path = r.name === 'result' || r.name === 'exam' ? '/thi' : routePath(r);
-    location.hash = `#/${id}${path}`;
+    navigate(`/${id}${path}`);
   };
 
   return (

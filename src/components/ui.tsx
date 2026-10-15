@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { XIcon } from '@phosphor-icons/react';
 
 export const INPUT_CLASS = 'min-h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-ink outline-none focus:border-violet';
 
@@ -88,6 +89,45 @@ export function ConfirmDialog({ text, confirmLabel, onConfirm, onCancel, danger 
           <NeonButton variant="ghost" onClick={onCancel}>Hủy</NeonButton>
           <NeonButton variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>{confirmLabel}</NeonButton>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Hộp thoại có nút X ở góc: mở là focus vào nút X, Esc hoặc bấm ra ngoài để đóng. */
+export function Modal({ labelledBy, onClose, className = 'max-w-sm', children }: {
+  labelledBy: string; onClose: () => void; className?: string; children: ReactNode;
+}) {
+  const closeBtn = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+  useEffect(() => {
+    closeBtn.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCloseRef.current();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        className={`relative max-h-[90dvh] w-full overflow-y-auto rounded-2xl border border-white/10 bg-[#15102b] p-5 shadow-xl ${className}`}
+      >
+        <button
+          ref={closeBtn}
+          type="button"
+          onClick={onClose}
+          aria-label="Đóng"
+          className="absolute right-2 top-2 grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10 hover:text-ink"
+        >
+          <XIcon size={20} />
+        </button>
+        {children}
       </div>
     </div>
   );

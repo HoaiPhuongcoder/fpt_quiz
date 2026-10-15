@@ -34,7 +34,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,woff,woff2,png,svg,ico}'],
         // Trang tĩnh phải tải đúng HTML của nó, không bị thay bằng app.
-        navigateFallbackDenylist: [/^\/gioi-thieu/, /^\/chinh-sach-quyen-rieng-tu/],
+        navigateFallbackDenylist: [/^\/chinh-sach-quyen-rieng-tu/],
       },
     }),
   ],
@@ -42,7 +42,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: page('./index.html'),
-        about: page('./gioi-thieu/index.html'),
         privacy: page('./chinh-sach-quyen-rieng-tu/index.html'),
       },
     },

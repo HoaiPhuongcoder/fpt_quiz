@@ -21,7 +21,7 @@ it('thiết lập: bấm Bắt đầu thi thì tạo đề và chuyển sang mà
   render(<ExamSetup />);
   await user.click(screen.getByRole('button', { name: 'Bắt đầu thi' }));
   expect(store.getState().examCurrent?.items).toHaveLength(3);
-  expect(window.location.hash).toBe('#/hcm202/lam-bai');
+  expect(window.location.pathname).toBe('/hcm202/lam-bai');
 });
 
 it('làm bài 3 câu và nộp: chuyển sang trang kết quả', async () => {
@@ -36,7 +36,7 @@ it('làm bài 3 câu và nộp: chuyển sang trang kết quả', async () => {
   await user.click(screen.getByRole('button', { name: 'Nộp bài' }));
   const r = store.getState().examHistory[0];
   expect(r).toMatchObject({ correct: 3, total: 3, score10: 10 });
-  expect(window.location.hash).toBe(`#/hcm202/ket-qua/${r.id}`);
+  expect(window.location.pathname).toBe(`/hcm202/ket-qua/${r.id}`);
 });
 
 it('còn câu chưa làm thì hỏi xác nhận trước khi nộp', async () => {

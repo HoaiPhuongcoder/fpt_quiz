@@ -5,6 +5,8 @@
       "has": [{ "type": "host", "value": "fpt-quiz.vercel.app" }],
       "destination": "https://hoaiphuong.io.vn/$1",
       "statusCode": 301
-    }
-  ]
+    },
+    { "source": "/gioi-thieu/:path*", "destination": "/", "statusCode": 301 }
+  ],
+  "rewrites": [{ "source": "/((?!chinh-sach-quyen-rieng-tu).*)", "destination": "/index.html" }]
 }

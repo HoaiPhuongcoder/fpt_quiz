@@ -13,7 +13,7 @@ it('hiện cấp độ, 20 huy hiệu và huy hiệu đã mở', () => {
   expect(screen.getAllByTestId('badge')).toHaveLength(20);
   expect(screen.getByTitle('Ôn bài trong khoảng 23:00–03:59')).toHaveAttribute('data-unlocked', 'true');
   expect(screen.getByTitle('Học 3 ngày liên tiếp')).toHaveAttribute('data-unlocked', 'false');
-  expect(screen.getByRole('link', { name: 'Cài đặt' })).toHaveAttribute('href', '#/hcm202/cai-dat');
+  expect(screen.getByRole('link', { name: 'Cài đặt' })).toHaveAttribute('href', '/hcm202/cai-dat');
 });
 
 it('bấm vào huy hiệu chưa mở thì hiện điều kiện', async () => {

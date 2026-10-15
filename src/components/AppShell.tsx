@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { BooksIcon, HouseIcon, MagnifyingGlassIcon, TimerIcon, UserCircleIcon, type Icon } from '@phosphor-icons/react';
 import type { RouteName } from '../router';
 import { href } from '../store/nav';
+import { AboutLink } from './AboutDialog';
 import { SubjectSwitcher } from './SubjectSwitcher';
 import { CoffeeFloat, SupportCoffee } from './SupportCoffee';
 
@@ -44,7 +45,7 @@ export function AppShell({ active, children }: { active: RouteName; children: Re
         <footer className="mt-10 grid justify-items-center gap-4">
           <SupportCoffee />
           <div className="flex justify-center gap-4 text-xs text-dim">
-            <a href="/gioi-thieu/" className="hover:text-mut">Giới thiệu</a>
+            <AboutLink />
             <a href="/chinh-sach-quyen-rieng-tu/" className="hover:text-mut">Chính sách quyền riêng tư</a>
           </div>
         </footer>

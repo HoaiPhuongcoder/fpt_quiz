@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { routePath, useHashRoute, type Route } from './router';
+import { interceptAppLinks, routePath, useRoute, type Route } from './router';
 import { useApp } from './store/appStore';
 import { AppShell } from './components/AppShell';
 import { Toaster } from './components/Toaster';
@@ -42,7 +42,8 @@ export function App() {
   const subjects = useApp((s) => s.subjects);
   const subject = useApp((s) => s.subject);
   const switchSubject = useApp((s) => s.switchSubject);
-  const route = useHashRoute(subjects.map((x) => x.id));
+  const subjectIds = subjects.map((x) => x.id);
+  const route = useRoute(subjectIds);
   const tick = useApp((s) => s.tick);
   const checkExamExpiry = useApp((s) => s.checkExamExpiry);
 
@@ -56,6 +57,9 @@ export function App() {
     const t = setInterval(run, 10_000);
     return () => clearInterval(t);
   }, [tick, checkExamExpiry]);
+
+  const idsKey = subjectIds.join(',');
+  useEffect(() => interceptAppLinks(idsKey.split(',')), [idsKey]);
 
   // URL quyết định môn; link cũ không có mã môn được đổi sang dạng có mã môn hiện tại.
   useEffect(() => {
