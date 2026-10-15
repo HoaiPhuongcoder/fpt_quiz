@@ -14,7 +14,7 @@ describe('srs', () => {
   });
 
   it('cấu hình mặc định: Thi gấp, 80 thẻ mới/ngày, cả 6 chương, ngẫu nhiên', () => {
-    expect(DEFAULT_CONFIG).toMatchObject({ preset: 'cram', newPerDay: 80, chs: [1, 2, 3, 4, 5, 6], order: 'random', ...legacyParams('cram') });
+    expect(DEFAULT_CONFIG).toMatchObject({ preset: 'cram', newPerDay: 80, chs: [], order: 'random', ...legacyParams('cram') });
   });
 
   it('thẻ mới bấm Được ở chế độ Thi gấp → bước 2, gặp lại sau 10 phút', () => {

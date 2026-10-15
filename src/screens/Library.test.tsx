@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import type { StoreApi } from 'zustand';
 import { Library } from './Library';
 import { createAppStore, setAppStore, type AppState } from '../store/appStore';
-import { createMemoryStorage, makeCard, makeQ } from '../../test/fixtures';
+import { createMemoryStorage, makeCard, makeQ, makeSubject } from '../../test/fixtures';
 
 let store: StoreApi<AppState>;
 beforeEach(() => {
   const t = Date.now();
   const cards = { 1: makeCard({ due: t - 1000, log: [[t - 5000, 3, 1440]] }) };
-  store = createAppStore({ storage: createMemoryStorage({ cards }), questions: [makeQ(1), makeQ(2)] });
+  store = createAppStore({ storage: createMemoryStorage({ cards }), subjects: [makeSubject([makeQ(1), makeQ(2)])] });
   setAppStore(store);
 });
 

@@ -1,5 +1,7 @@
 import { fold, highlight, parseQuery, searchQuestions } from './search';
-import { QUESTIONS } from '../data/questions';
+import { subjectById } from '../data/subjects';
+
+const QUESTIONS = subjectById('hcm202')!.questions;
 import { makeQ } from '../../test/fixtures';
 
 describe('fold', () => {

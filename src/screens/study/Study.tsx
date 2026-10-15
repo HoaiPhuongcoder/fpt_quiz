@@ -3,10 +3,12 @@ import { LightningIcon, XIcon } from '@phosphor-icons/react';
 import { getAppStore, useApp } from '../../store/appStore';
 import { useCounts } from '../../store/hooks';
 import { schedule } from '../../domain/srs';
-import { ROMAN, type Rating } from '../../domain/types';
+import { type Rating } from '../../domain/types';
 import { QuestionView } from './QuestionView';
 import { RatingBar } from './RatingBar';
 import { SessionSummary } from './SessionSummary';
+import { replaceTo } from '../../store/nav';
+import { roman } from '../../domain/subject';
 
 const KEY_MAP: Record<string, string> = { A: 'A', B: 'B', C: 'C', D: 'D', E: 'E', '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
 
@@ -25,7 +27,7 @@ export function Study() {
 
   const q = study.cur != null ? byId[study.cur] : null;
   const card = q ? cards[q.n] : undefined;
-  const exit = () => location.replace('#/');
+  const exit = () => replaceTo('/');
 
   useEffect(() => { startStudy(); }, [startStudy]);
   // Khi đang chờ, mỗi lần đồng hồ `now` nhích thì thử lấy thẻ mới đến hạn.
@@ -81,7 +83,7 @@ export function Study() {
       <div ref={bodyRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[560px] px-4 py-4">
           {q ? (
-            <QuestionView q={q} card={card} picked={study.picked} shown={study.shown} correct={study.correct} now={now} onChoose={choose} meta={`Câu ${q.n} · Ch. ${ROMAN[q.c]}`} />
+            <QuestionView q={q} card={card} picked={study.picked} shown={study.shown} correct={study.correct} now={now} onChoose={choose} meta={`Câu ${q.n} · Ch. ${roman(q.c)}`} />
           ) : (
             <SessionSummary />
           )}

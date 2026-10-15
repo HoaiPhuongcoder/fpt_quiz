@@ -6,6 +6,7 @@ import { PRESETS, presetParams } from '../../domain/srs';
 import { dayKey } from '../../domain/time';
 import type { PresetId } from '../../domain/types';
 import { fromForm, toForm, type SettingsForm } from './form';
+import { href } from '../../store/nav';
 
 const FIELDS: [keyof SettingsForm, string, string][] = [
   ['steps', 'Bước học (thẻ mới)', 'vd: 1m 10m 1h'],
@@ -30,7 +31,8 @@ export function Settings() {
   const setGoalTarget = useApp((s) => s.setGoalTarget);
   const exportJson = useApp((s) => s.exportJson);
   const importJson = useApp((s) => s.importJson);
-  const resetAll = useApp((s) => s.resetAll);
+  const resetSubject = useApp((s) => s.resetSubject);
+  const subject = useApp((s) => s.subject);
   const [form, setForm] = useState(() => toForm(cfg));
   const [goal, setGoal] = useState(goalTarget);
   const [io, setIo] = useState('');
@@ -66,7 +68,7 @@ export function Settings() {
     const url = URL.createObjectURL(new Blob([exportJson()], { type: 'application/json' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `hcm202-tien-do-${dayKey(Date.now())}.json`;
+    a.download = `fpt-quiz-tien-do-${dayKey(Date.now())}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -80,19 +82,22 @@ export function Settings() {
     setConfirm(null);
   };
   const doReset = () => {
-    resetAll();
+    resetSubject();
     setForm(toForm(getAppStore().getState().cfg));
     setGoal(getAppStore().getState().game.goalTarget);
     setIo('');
     setConfirm(null);
-    setMsg('Đã xóa toàn bộ tiến độ.');
+    setMsg(`Đã xóa tiến độ môn ${subject.code}.`);
   };
 
   return (
     <div className="space-y-4">
       <header className="flex items-center gap-3">
-        <a href="#/ho-so" aria-label="Quay lại Hồ sơ" className="grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10"><ArrowLeftIcon size={22} /></a>
-        <h1 className="text-2xl font-bold">Cài đặt</h1>
+        <a href={href('/ho-so')} aria-label="Quay lại Hồ sơ" className="grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10"><ArrowLeftIcon size={22} /></a>
+        <div>
+          <h1 className="text-2xl font-bold">Cài đặt</h1>
+          <p className="text-xs text-mut">Chế độ học và thẻ mới áp dụng cho môn {subject.code}</p>
+        </div>
       </header>
       {msg && <p role="status" className="rounded-xl border border-violet/40 bg-violet/10 px-3 py-2 text-sm">{msg}</p>}
 
@@ -157,14 +162,15 @@ export function Settings() {
 
       <Glass className="space-y-3 p-4">
         <h2 className="font-semibold">Xóa tiến độ</h2>
-        <NeonButton variant="danger" onClick={() => setConfirm('reset')}><TrashIcon size={18} />Xóa toàn bộ tiến độ…</NeonButton>
+        <p className="text-sm text-mut">Chỉ xóa lịch ôn, bài thi và lịch sử thi của môn {subject.code}. XP, chuỗi ngày và huy hiệu vẫn giữ.</p>
+        <NeonButton variant="danger" onClick={() => setConfirm('reset')}><TrashIcon size={18} />Xóa tiến độ môn {subject.code}…</NeonButton>
       </Glass>
 
       {confirm === 'import' && (
         <ConfirmDialog text="Tiến độ hiện tại trên máy này sẽ bị thay bằng dữ liệu vừa dán. Tiếp tục?" confirmLabel="Ghi đè" onConfirm={doImport} onCancel={() => setConfirm(null)} />
       )}
       {confirm === 'reset' && (
-        <ConfirmDialog text="Xóa toàn bộ lịch ôn, XP, huy hiệu và lịch sử thi? Không thể hoàn tác." confirmLabel="Xóa hết" danger onConfirm={doReset} onCancel={() => setConfirm(null)} />
+        <ConfirmDialog text={`Xóa lịch ôn, bài thi và lịch sử thi của môn ${subject.code}? Không thể hoàn tác.`} confirmLabel="Xóa hết" danger onConfirm={doReset} onCancel={() => setConfirm(null)} />
       )}
     </div>
   );

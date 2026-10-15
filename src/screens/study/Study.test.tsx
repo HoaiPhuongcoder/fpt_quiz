@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import type { StoreApi } from 'zustand';
 import { Study } from './Study';
 import { createAppStore, setAppStore, type AppState } from '../../store/appStore';
-import { createMemoryStorage, makeQ } from '../../../test/fixtures';
+import { createMemoryStorage, makeQ, makeSubject } from '../../../test/fixtures';
 import { DEFAULT_CONFIG } from '../../domain/srs';
 import type { Question } from '../../domain/types';
 
 let store: StoreApi<AppState>;
 function mount(questions: Question[]) {
-  store = createAppStore({ storage: createMemoryStorage({ cfg: { ...DEFAULT_CONFIG, order: 'seq' } }), questions });
+  store = createAppStore({ storage: createMemoryStorage({ cfg: { ...DEFAULT_CONFIG, order: 'seq' } }), subjects: [makeSubject(questions)] });
   setAppStore(store);
   render(<Study />);
 }

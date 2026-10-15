@@ -1,7 +1,7 @@
 import { createAppStore } from './appStore';
-import { createMemoryStorage, makeCard, makeQ } from '../../test/fixtures';
+import { createMemoryStorage, makeCard, makeQ, makeSubject } from '../../test/fixtures';
 import { DEFAULT_CONFIG } from '../domain/srs';
-import { DEFAULT_EXAM_CONFIG } from '../domain/exam';
+import { defaultExamConfig } from '../domain/exam';
 import { MIN } from '../domain/time';
 import type { Snapshot } from '../storage/local';
 
@@ -12,7 +12,7 @@ function setup(over: Partial<Snapshot> = {}) {
   let t = T0;
   const storage = createMemoryStorage({ cfg: { ...DEFAULT_CONFIG, order: 'seq' }, ...over }, T0);
   const questions = [makeQ(1), makeQ(2), makeQ(3, 2, { a: ['A', 'B'] })];
-  const store = createAppStore({ storage, questions, now: () => t, rand: () => 0 });
+  const store = createAppStore({ storage, subjects: [makeSubject(questions)], now: () => t, rand: () => 0 });
   return { store, storage, advance: (ms: number) => { t += ms; }, get s() { return store.getState(); } };
 }
 
@@ -95,7 +95,7 @@ describe('phiên học', () => {
 });
 
 describe('thi thử', () => {
-  const cfg = { ...DEFAULT_EXAM_CONFIG, count: 3, shuffleOptions: false };
+  const cfg = { ...defaultExamConfig([1, 2, 3, 4, 5, 6]), count: 3, shuffleOptions: false };
   it('nộp bài: lưu lịch sử, cộng XP, câu sai vào học lại', () => {
     const app = setup();
     app.s.startExam(cfg);
@@ -149,5 +149,78 @@ describe('cài đặt và dữ liệu', () => {
     const app = setup();
     app.s.applyPreset('normal');
     expect(app.s.cfg).toMatchObject({ preset: 'normal', steps: [1, 10], grad: 1440 });
+  });
+});
+
+describe('nhiều môn', () => {
+  const MLN = makeSubject([makeQ(1, 7, { q: 'Câu MLN 1' }), makeQ(2, 7)], {
+    id: 'mln131', code: 'MLN131', storagePrefix: 'quiz.v1.mln131', chapters: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ id, title: '' })),
+  });
+  function setup2(initialSubject?: string) {
+    const storage = createMemoryStorage({}, T0, { 'hcm.v1': { cards: { 1: makeCard() } } });
+    const store = createAppStore({ storage, subjects: [makeSubject([makeQ(1), makeQ(2)]), MLN], initialSubject, now: () => T0, rand: () => 0 });
+    return { store, storage, get s() { return store.getState(); } };
+  }
+
+  it('bắt đầu ở môn đầu tiên, hoặc môn đã chọn lần trước', () => {
+    expect(setup2().s.subject.id).toBe('hcm202');
+    expect(setup2('mln131').s.subject.id).toBe('mln131');
+    const storage = createMemoryStorage();
+    storage.saveActive('mln131');
+    expect(createAppStore({ storage, subjects: [makeSubject([]), MLN] }).getState().subject.id).toBe('mln131');
+  });
+  it('đổi môn: câu hỏi, thẻ, chương theo môn mới; XP giữ nguyên; nhớ môn đã chọn', () => {
+    const app = setup2();
+    app.s.startStudy();
+    app.s.choose('A');
+    const xp = app.s.game.xp;
+    app.s.switchSubject('mln131');
+    expect(app.s.questions[0].q).toBe('Câu MLN 1');
+    expect(app.s.cards).toEqual({});
+    expect(app.s.cfg.chs).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(app.s.study.cur).toBeNull();
+    expect(app.s.game.xp).toBe(xp);
+    expect(app.storage.active).toBe('mln131');
+    expect(app.storage.savedBy['quiz.v1.mln131']).toBeUndefined();
+  });
+  it('chấm thẻ sau khi đổi môn ghi vào môn mới; đổi lại thấy thẻ cũ', () => {
+    const app = setup2();
+    app.s.switchSubject('mln131');
+    app.s.startStudy();
+    app.s.choose('A');
+    app.s.rate(3);
+    expect(Object.keys(app.storage.savedBy['quiz.v1.mln131'].cards!)).toEqual(['1']);
+    expect(app.storage.savedBy['hcm.v1']?.cards).toBeUndefined();
+    app.s.switchSubject('hcm202');
+    expect(app.s.cards[1]).toEqual(makeCard());
+  });
+  it('mã môn lạ hoặc trùng môn hiện tại thì không làm gì', () => {
+    const app = setup2();
+    const before = app.s;
+    app.s.switchSubject('xyz');
+    app.s.switchSubject('hcm202');
+    expect(app.s).toBe(before);
+  });
+  it('xóa tiến độ môn này giữ XP', () => {
+    const app = setup2();
+    app.s.startStudy();
+    app.s.choose('A');
+    app.s.resetSubject();
+    expect(app.s.cards).toEqual({});
+    expect(app.s.game.xp).toBeGreaterThan(0);
+  });
+  it('xuất gồm mọi môn; nhập v4 cập nhật môn đang mở và lưu môn khác', () => {
+    const app = setup2();
+    const out = JSON.parse(app.s.exportJson());
+    expect(Object.keys(out.subjects)).toEqual(['hcm202', 'mln131']);
+    expect(Object.keys(out.subjects.hcm202.cards)).toEqual(['1']);
+    out.subjects.mln131.cards = { 2: makeCard() };
+    out.subjects.hcm202.cards = {};
+    out.game.xp = 77;
+    expect(app.s.importJson(JSON.stringify(out)).ok).toBe(true);
+    expect(app.s.cards).toEqual({});
+    expect(app.s.game.xp).toBe(77);
+    app.s.switchSubject('mln131');
+    expect(Object.keys(app.s.cards)).toEqual(['2']);
   });
 });

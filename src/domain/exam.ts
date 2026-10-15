@@ -1,5 +1,4 @@
 import type { Cards, ChapterId, Question, SrsParams } from './types';
-import { CHAPTERS } from './types';
 import { MIN } from './time';
 import { schedule } from './srs';
 import type { Rng } from './random';
@@ -17,7 +16,9 @@ export interface ExamResult {
   wrong: number[]; xp: number; newBadges: string[];
 }
 
-export const DEFAULT_EXAM_CONFIG: ExamConfig = { count: 50, minutes: 60, chapters: [...CHAPTERS], shuffleOptions: true };
+export function defaultExamConfig(chapters: ChapterId[]): ExamConfig {
+  return { count: 50, minutes: 60, chapters: [...chapters], shuffleOptions: true };
+}
 export const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(Number.isFinite(v) ? v : lo)));

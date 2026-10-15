@@ -17,3 +17,9 @@ export function useCounts(): Counts {
   const newSeen = useApp((s) => s.day.newSeen);
   return useMemo(() => computeCounts(pool, cards, now, newPerDay, newSeen), [pool, cards, now, newPerDay, newSeen]);
 }
+
+/** Id các chương của môn đang chọn. */
+export function useChapterIds(): number[] {
+  const subject = useApp((s) => s.subject);
+  return useMemo(() => subject.chapters.map((c) => c.id), [subject]);
+}

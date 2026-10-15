@@ -3,8 +3,9 @@ import { RATING_NAMES, useApp } from '../store/appStore';
 import { useCounts, usePool } from '../store/hooks';
 import { Chip, Glass, NeonButton } from '../components/ui';
 import { StatusPill } from '../components/status';
-import { ROMAN, type Card, type Question } from '../domain/types';
+import { type Card, type Question } from '../domain/types';
 import { MIN, clock, endOfDay, fmt } from '../domain/time';
+import { roman } from '../domain/subject';
 
 type Filter = 'studied' | 'due' | 'learn' | 'review' | 'lapsed' | 'new' | 'all';
 type Sort = 'n' | 'due' | 'ivl' | 'ease' | 'lapses';
@@ -74,7 +75,7 @@ function CardsTab() {
             {rows.slice(0, ROW_LIMIT).map(({ q, c }) => (
               <Fragment key={q.n}>
                 <tr className="cursor-pointer border-b border-white/5 align-top hover:bg-white/5" onClick={() => setOpen(open === q.n ? null : q.n)}>
-                  <td className="whitespace-nowrap px-2 py-2"><b className="font-num">{q.n}</b> <span className="text-xs text-mut">Ch.{ROMAN[q.c]}</span></td>
+                  <td className="whitespace-nowrap px-2 py-2"><b className="font-num">{q.n}</b> <span className="text-xs text-mut">Ch.{roman(q.c)}</span></td>
                   <td className="px-2 py-2"><StatusPill card={c} /></td>
                   <td className="whitespace-nowrap px-2 py-2">
                     {c ? (c.due <= now ? <b className="text-bad-soft">Đến hạn</b> : <>sau {fmt((c.due - now) / MIN)}<br /><span className="text-xs text-mut">{clock(c.due, now)}</span></>) : '–'}
