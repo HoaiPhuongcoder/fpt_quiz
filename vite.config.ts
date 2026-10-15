@@ -16,9 +16,9 @@ export default defineConfig({
       injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png', 'icon.svg'],
       manifest: {
-        name: 'Ôn HCM202',
-        short_name: 'HCM202',
-        description: 'Ôn trắc nghiệm Tư tưởng Hồ Chí Minh kiểu Anki, có thi thử',
+        name: 'Ôn thi FPT',
+        short_name: 'Ôn thi FPT',
+        description: 'Ôn trắc nghiệm HCM202, MLN131 kiểu Anki, có thi thử',
         lang: 'vi',
         start_url: '/',
         display: 'standalone',
