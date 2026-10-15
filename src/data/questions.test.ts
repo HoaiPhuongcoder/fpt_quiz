@@ -55,4 +55,11 @@ describe('MLN131', () => {
     expect(qs.filter((q) => q.a.length > 1)).toHaveLength(23);
     expect(subjectById('mln131')!.chapters).toHaveLength(7);
   });
+  it('câu nào cũng có giải thích, mẹo; mọi chương đều có câu', () => {
+    for (const q of qs) {
+      expect(q.y.length).toBeGreaterThan(0);
+      expect(q.t.length).toBeGreaterThan(0);
+    }
+    for (const c of [1, 2, 3, 4, 5, 6, 7]) expect(qs.some((q) => q.c === c)).toBe(true);
+  });
 });

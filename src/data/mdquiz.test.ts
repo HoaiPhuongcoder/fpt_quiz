@@ -17,8 +17,9 @@ describe('parseQuizMd', () => {
     expect(r[1]).toMatchObject({ a: ['A'], w: 'Câu trả lời khác: y' });
   });
   it('bỏ số điện thoại rác trong câu hỏi, nối câu hỏi nhiều dòng', () => {
-    const r = parseQuizMd(md('## Câu 5\n\nDòng một\ndòng hai?(073-356- 8678)\n\n- A. x\n\n**Đáp án:** A\n'));
+    const r = parseQuizMd(md('## Câu 5\n\nDòng một\ndòng hai?(073-356- 8678)\n\n- A. x\n\n**Đáp án:** A\n\n## Câu 6\n\nHỏi?(073- 356-8678)\n\n- A. x\n\n**Đáp án:** A\n'));
     expect(r[0].q).toBe('Dòng một dòng hai?');
+    expect(r[1].q).toBe('Hỏi?');
   });
   it('đáp án không có trong lựa chọn thì báo lỗi kèm số câu', () => {
     expect(() => parseQuizMd(md('## Câu 9\n\nHỏi?\n\n- A. x\n- B. y\n\n**Đáp án:** D\n'))).toThrow('Câu 9');

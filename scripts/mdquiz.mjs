@@ -4,7 +4,7 @@
 //   - A. Lựa chọn          (chấp nhận cả "- a.")
 //   **Đáp án:** AB (ghi chú tùy chọn)
 
-const SPAM = /\s*\(\d{3}-\d{3}-\s?\d{4}\)/g;
+const SPAM = /\s*\(\d{3}-\s?\d{3}-\s?\d{4}\)/g;
 const clean = (s) => s.replace(SPAM, '').replace(/\s+/g, ' ').trim();
 
 /** Tách "AB (ghi chú)" / "A(ghi chú)" thành đáp án và ghi chú. */
