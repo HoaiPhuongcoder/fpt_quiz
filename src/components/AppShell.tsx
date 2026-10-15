@@ -3,7 +3,7 @@ import { BooksIcon, HouseIcon, MagnifyingGlassIcon, TimerIcon, UserCircleIcon, t
 import type { RouteName } from '../router';
 import { href } from '../store/nav';
 import { SubjectSwitcher } from './SubjectSwitcher';
-import { SupportCoffee } from './SupportCoffee';
+import { CoffeeFloat, SupportCoffee } from './SupportCoffee';
 
 const TABS: { path: string; label: string; Icon: Icon; match: RouteName[] }[] = [
   { path: '/', label: 'Trang chủ', Icon: HouseIcon, match: ['home'] },
@@ -49,6 +49,7 @@ export function AppShell({ active, children }: { active: RouteName; children: Re
           </div>
         </footer>
       </main>
+      {active === 'home' && <CoffeeFloat />}
     </div>
   );
 }

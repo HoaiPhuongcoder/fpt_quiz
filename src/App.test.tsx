@@ -51,10 +51,30 @@ it('mở link có mã môn khác thì chuyển sang môn đó', async () => {
 it('nút mời cà phê ở chân trang mở hộp có mã QR, Esc để đóng', async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole('button', { name: /Mời mình ly cà phê/ }));
+  await user.click(screen.getByRole('button', { name: 'Mời mình ly cà phê' }));
   const dialog = screen.getByRole('dialog', { name: /Mời mình một ly cà phê/ });
   expect(dialog).toContainElement(screen.getByRole('img', { name: /Mã QR chuyển khoản/ }));
   expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus();
   await user.keyboard('{Escape}');
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+it('trang chủ có bong bóng cà phê bay, bấm mở hộp ủng hộ; bấm X thì ẩn trong lần vào web này', async () => {
+  const user = userEvent.setup();
+  const { unmount } = render(<App />);
+  await user.click(screen.getByRole('button', { name: /Thấy web có ích\? Mời mình ly cà phê/ }));
+  expect(screen.getByRole('dialog', { name: /Mời mình một ly cà phê/ })).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'Đóng' }));
+  await user.click(screen.getByRole('button', { name: 'Ẩn lời mời cà phê' }));
+  expect(screen.queryByRole('button', { name: /Thấy web có ích/ })).not.toBeInTheDocument();
+  unmount();
+  render(<App />);
+  expect(screen.queryByRole('button', { name: /Thấy web có ích/ })).not.toBeInTheDocument();
+});
+
+it('bong bóng cà phê chỉ hiện ở trang chủ', async () => {
+  location.hash = '#/hcm202/thu-vien';
+  render(<App />);
+  await act(async () => {});
+  expect(screen.queryByRole('button', { name: /Thấy web có ích/ })).not.toBeInTheDocument();
 });

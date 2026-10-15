@@ -25,6 +25,55 @@ export function SupportCoffee() {
   );
 }
 
+/** Đã bấm X trong lần vào web này chưa; tải lại hay mở web lần sau thì bong bóng hiện lại. */
+let dismissedThisVisit = false;
+
+/** Bong bóng cà phê bay lơ lửng ở góc trang chủ; bấm mở hộp ủng hộ, bấm X thì ẩn tới lần vào web sau. */
+export function CoffeeFloat() {
+  const [hidden, setHidden] = useState(dismissedThisVisit);
+  const [open, setOpen] = useState(false);
+  if (hidden) return null;
+
+  const dismiss = () => {
+    dismissedThisVisit = true;
+    setHidden(true);
+  };
+
+  return (
+    <>
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+76px)] right-4 z-30 animate-pop-in [animation-delay:800ms] lg:bottom-8 lg:right-8">
+        <div className="relative animate-bob">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Thấy web có ích? Mời mình ly cà phê"
+            className="flex items-center gap-3 rounded-2xl border border-streak/50 bg-[#1f1530]/95 py-3 pl-3 pr-5 text-left shadow-[0_0_28px_rgba(255,162,92,.35)] backdrop-blur-md transition hover:scale-[1.03] hover:border-streak active:scale-95"
+          >
+            <span className="relative grid size-12 shrink-0 place-items-center rounded-full bg-linear-to-br from-streak to-relearn text-white shadow-[0_0_16px_rgba(255,162,92,.55)]">
+              <span aria-hidden className="absolute -top-2 left-4 h-3 w-1 animate-steam rounded-full bg-white/70" />
+              <span aria-hidden className="absolute -top-2 left-7 h-3 w-1 animate-steam rounded-full bg-white/70 [animation-delay:1.2s]" />
+              <CoffeeIcon size={28} weight="fill" />
+            </span>
+            <span>
+              <span className="block text-xs text-mut">Thấy web có ích?</span>
+              <span className="block font-bold text-streak">Mời mình ly cà phê</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="Ẩn lời mời cà phê"
+            className="absolute -right-3 -top-3 grid size-9 place-items-center rounded-full border border-white/20 bg-[#2a2350] text-ink shadow-lg transition hover:bg-bad hover:text-white"
+          >
+            <XIcon size={18} weight="bold" />
+          </button>
+        </div>
+      </div>
+      {open && <SupportDialog onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 function SupportDialog({ onClose }: { onClose: () => void }) {
   const pushToast = useApp((s) => s.pushToast);
   const closeBtn = useRef<HTMLButtonElement>(null);
