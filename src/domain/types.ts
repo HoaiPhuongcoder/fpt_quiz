@@ -1,6 +1,4 @@
-export type ChapterId = 1 | 2 | 3 | 4 | 5 | 6;
-export const CHAPTERS: ChapterId[] = [1, 2, 3, 4, 5, 6];
-export const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI'] as const;
+export type ChapterId = number;
 
 export interface Question {
   n: number;

@@ -4,6 +4,7 @@ import { useApp } from '../../store/appStore';
 import { ConfirmDialog, NeonButton } from '../../components/ui';
 import { OptionButton } from '../../components/OptionButton';
 import { LETTERS } from '../../domain/exam';
+import { replaceTo } from '../../store/nav';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -21,7 +22,7 @@ export function Exam() {
   const doSubmit = useCallback(() => {
     submitted.current = true;
     const r = submitExam();
-    location.replace(r ? `#/ket-qua/${r.id}` : '#/thi');
+    replaceTo(r ? `/ket-qua/${r.id}` : '/thi');
   }, [submitExam]);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function Exam() {
   }, []);
   // Không có bài đang làm (và không phải vừa nộp) thì quay về màn thiết lập.
   useEffect(() => {
-    if (!ex && !submitted.current) location.replace('#/thi');
+    if (!ex && !submitted.current) replaceTo('/thi');
   }, [ex]);
   useEffect(() => {
     if (ex && clockNow >= ex.deadline && !submitted.current) doSubmit();
@@ -62,7 +63,7 @@ export function Exam() {
   return (
     <div className="bg-app fixed inset-0 z-20 flex flex-col">
       <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/5 px-4 pb-2 pt-[calc(env(safe-area-inset-top)+8px)] backdrop-blur-md">
-        <button type="button" onClick={() => location.replace('#/thi')} aria-label="Thoát (bài vẫn được lưu)" className="grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10">
+        <button type="button" onClick={() => replaceTo('/thi')} aria-label="Thoát (bài vẫn được lưu)" className="grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10">
           <XIcon size={22} />
         </button>
         <span className={`font-num text-xl font-bold drop-shadow-[0_0_10px_rgba(103,232,249,.6)] ${remaining < 5 * 60_000 ? 'text-bad-soft' : 'text-new'}`} aria-label="Thời gian còn lại">

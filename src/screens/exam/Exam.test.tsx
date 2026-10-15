@@ -5,14 +5,14 @@ import { Exam } from './Exam';
 import { ExamSetup } from './ExamSetup';
 import { ExamResultScreen } from './ExamResult';
 import { createAppStore, setAppStore, type AppState } from '../../store/appStore';
-import { createMemoryStorage, makeQ } from '../../../test/fixtures';
-import { DEFAULT_EXAM_CONFIG } from '../../domain/exam';
+import { createMemoryStorage, makeQ, makeSubject } from '../../../test/fixtures';
+import { defaultExamConfig } from '../../domain/exam';
 
 let store: StoreApi<AppState>;
-const cfg = { ...DEFAULT_EXAM_CONFIG, count: 3, shuffleOptions: false };
+const cfg = { ...defaultExamConfig([1, 2, 3, 4, 5, 6]), count: 3, shuffleOptions: false };
 
 beforeEach(() => {
-  store = createAppStore({ storage: createMemoryStorage(), questions: [makeQ(1), makeQ(2), makeQ(3)] });
+  store = createAppStore({ storage: createMemoryStorage(), subjects: [makeSubject([makeQ(1), makeQ(2), makeQ(3)])] });
   setAppStore(store);
 });
 
@@ -21,7 +21,7 @@ it('thiết lập: bấm Bắt đầu thi thì tạo đề và chuyển sang mà
   render(<ExamSetup />);
   await user.click(screen.getByRole('button', { name: 'Bắt đầu thi' }));
   expect(store.getState().examCurrent?.items).toHaveLength(3);
-  expect(window.location.hash).toBe('#/lam-bai');
+  expect(window.location.hash).toBe('#/hcm202/lam-bai');
 });
 
 it('làm bài 3 câu và nộp: chuyển sang trang kết quả', async () => {
@@ -36,7 +36,7 @@ it('làm bài 3 câu và nộp: chuyển sang trang kết quả', async () => {
   await user.click(screen.getByRole('button', { name: 'Nộp bài' }));
   const r = store.getState().examHistory[0];
   expect(r).toMatchObject({ correct: 3, total: 3, score10: 10 });
-  expect(window.location.hash).toBe(`#/ket-qua/${r.id}`);
+  expect(window.location.hash).toBe(`#/hcm202/ket-qua/${r.id}`);
 });
 
 it('còn câu chưa làm thì hỏi xác nhận trước khi nộp', async () => {

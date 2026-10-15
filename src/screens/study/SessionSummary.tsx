@@ -4,6 +4,7 @@ import { useCounts } from '../../store/hooks';
 import { Glass, NeonButton, ProgressBar } from '../../components/ui';
 import { displayStreak } from '../../domain/gamify';
 import { MIN, clock, dayKey, fmt } from '../../domain/time';
+import { replaceTo } from '../../store/nav';
 
 function SummaryStat({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
@@ -58,7 +59,7 @@ export function SessionSummary() {
       <div className="grid gap-2">
         {counts.nw > 0 && counts.newLeft === 0 && <NeonButton onClick={learnMoreNew}>Học thêm 20 thẻ mới</NeonButton>}
         {hasCards && <NeonButton variant="ghost" onClick={studyAhead}>Học trước thẻ sắp đến hạn</NeonButton>}
-        <NeonButton variant="ghost" onClick={() => location.replace('#/')}>Về trang chủ</NeonButton>
+        <NeonButton variant="ghost" onClick={() => replaceTo('/')}>Về trang chủ</NeonButton>
       </div>
     </div>
   );

@@ -4,13 +4,15 @@ import { useApp } from '../../store/appStore';
 import { Chip, Glass, NeonButton, ProgressBar } from '../../components/ui';
 import { OptionButton, type OptionState } from '../../components/OptionButton';
 import { LETTERS, type ExamItem } from '../../domain/exam';
-import { badgeById } from '../../domain/badges';
-import { CHAPTERS, ROMAN, type Question } from '../../domain/types';
+import { type Question } from '../../domain/types';
+import { go, href } from '../../store/nav';
+import { roman } from '../../domain/subject';
+import { useChapterIds } from '../../store/hooks';
 
 function ReviewItem({ index, item, q, picked }: { index: number; item: ExamItem; q: Question; picked: string[] }) {
   return (
     <Glass className="space-y-2 p-4">
-      <p className="text-xs text-mut">Câu {index + 1} · số {q.n} · Ch. {ROMAN[q.c]}</p>
+      <p className="text-xs text-mut">Câu {index + 1} · số {q.n} · Ch. {roman(q.c)}</p>
       <p className="font-semibold">{q.q}</p>
       <div className="grid gap-2">
         {item.order.map((k, i) => {
@@ -19,14 +21,17 @@ function ReviewItem({ index, item, q, picked }: { index: number; item: ExamItem;
         })}
       </div>
       {!picked.length && <p className="text-xs font-semibold text-flag">Bỏ trống</p>}
-      <p className="text-sm text-mut"><b className="text-violet-soft">Vì sao:</b> {q.y}</p>
-      <p className="text-sm text-mut"><b className="text-new">Mẹo:</b> {q.t}</p>
+      {q.y && <p className="text-sm text-mut"><b className="text-violet-soft">Vì sao:</b> {q.y}</p>}
+      {q.t && <p className="text-sm text-mut"><b className="text-new">Mẹo:</b> {q.t}</p>}
+      {q.w && <p className="text-sm text-mut"><b className="text-flag">Lưu ý:</b> {q.w}</p>}
     </Glass>
   );
 }
 
 export function ExamResultScreen({ id }: { id?: string }) {
   const result = useApp((s) => s.examHistory.find((r) => r.id === id));
+  const badges = useApp((s) => s.badges);
+  const chapters = useChapterIds();
   const byId = useApp((s) => s.byId);
   const [filter, setFilter] = useState<'wrong' | 'all'>('wrong');
 
@@ -34,7 +39,7 @@ export function ExamResultScreen({ id }: { id?: string }) {
     return (
       <Glass className="p-6 text-center">
         <p>Không tìm thấy kết quả này.</p>
-        <a className="mt-3 inline-block text-violet-soft underline" href="#/thi">Về Thi thử</a>
+        <a className="mt-3 inline-block text-violet-soft underline" href={href('/thi')}>Về Thi thử</a>
       </Glass>
     );
   }
@@ -59,7 +64,7 @@ export function ExamResultScreen({ id }: { id?: string }) {
           <span className="rounded-lg bg-ok/15 px-2.5 py-1 text-ok">+<span className="font-num">{result.xp}</span> XP</span>
           {result.newBadges.map((b) => (
             <span key={b} className="inline-flex items-center gap-1 rounded-lg bg-flag/15 px-2.5 py-1 text-flag">
-              <MedalIcon weight="fill" size={14} />{badgeById(b)?.name}
+              <MedalIcon weight="fill" size={14} />{badges.find((x) => x.id === b)?.name}
             </span>
           ))}
         </div>
@@ -68,11 +73,11 @@ export function ExamResultScreen({ id }: { id?: string }) {
       <Glass className="p-4">
         <p className="mb-2 text-sm font-semibold">Theo chương</p>
         <div className="grid gap-2">
-          {CHAPTERS.filter((c) => result.byChapter[c]).map((c) => {
+          {chapters.filter((c) => result.byChapter[c]).map((c) => {
             const s = result.byChapter[c]!;
             return (
               <div key={c} className="grid grid-cols-[3.5rem_1fr_3rem] items-center gap-2 text-xs">
-                <span className="text-mut">Ch. {ROMAN[c]}</span>
+                <span className="text-mut">Ch. {roman(c)}</span>
                 <ProgressBar value={s.correct} max={s.total} />
                 <span className="text-right font-num">{s.correct}/{s.total}</span>
               </div>
@@ -96,8 +101,8 @@ export function ExamResultScreen({ id }: { id?: string }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <NeonButton disabled={!result.wrong.length} onClick={() => { location.hash = '#/hoc'; }}>Ôn câu sai ngay</NeonButton>
-        <NeonButton variant="ghost" onClick={() => { location.hash = '#/thi'; }}>Thi lại</NeonButton>
+        <NeonButton disabled={!result.wrong.length} onClick={() => { go('/hoc'); }}>Ôn câu sai ngay</NeonButton>
+        <NeonButton variant="ghost" onClick={() => { go('/thi'); }}>Thi lại</NeonButton>
       </div>
     </div>
   );

@@ -3,16 +3,16 @@ import userEvent from '@testing-library/user-event';
 import type { StoreApi } from 'zustand';
 import { Search } from './Search';
 import { createAppStore, setAppStore, type AppState } from '../store/appStore';
-import { createMemoryStorage, makeCard, makeQ } from '../../test/fixtures';
+import { createMemoryStorage, makeCard, makeQ, makeSubject } from '../../test/fixtures';
 
 let store: StoreApi<AppState>;
 beforeEach(() => {
   store = createAppStore({
     storage: createMemoryStorage({ cards: { 1: makeCard({ due: Date.now() + 9e6 }) } }),
-    questions: [
+    subjects: [makeSubject([
       makeQ(1, 1, { q: 'Đại đoàn kết toàn dân tộc', y: 'Giải thích một', s: [2] }),
       makeQ(2, 3, { q: 'Độc lập dân tộc', y: 'Có nhắc đoàn kết' }),
-    ],
+    ])],
   });
   setAppStore(store);
 });

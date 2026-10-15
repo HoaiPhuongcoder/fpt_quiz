@@ -2,15 +2,18 @@ import {
   ArrowCounterClockwiseIcon, CalendarCheckIcon, ExamIcon, FireIcon, MedalIcon, PlayIcon, SparkleIcon, TargetIcon,
 } from '@phosphor-icons/react';
 import { useApp } from '../store/appStore';
-import { useCounts } from '../store/hooks';
+import { useChapterIds, useCounts } from '../store/hooks';
 import { Chip, Glass, NeonButton, ProgressBar, Stat, XpRing } from '../components/ui';
 import { displayStreak, levelInfo } from '../domain/gamify';
-import { BADGES } from '../domain/badges';
 import { clock, dayKey } from '../domain/time';
-import { CHAPTERS, ROMAN } from '../domain/types';
+
+import { go, href } from '../store/nav';
+import { roman } from '../domain/subject';
 
 export function Home() {
   const game = useApp((s) => s.game);
+  const badgeCount = useApp((s) => s.badges.length);
+  const chapters = useChapterIds();
   const chs = useApp((s) => s.cfg.chs);
   const now = useApp((s) => s.now);
   const last = useApp((s) => s.examHistory[0]);
@@ -43,7 +46,7 @@ export function Home() {
           <Stat icon={<ArrowCounterClockwiseIcon weight="duotone" size={24} />} value={counts.lrDue} label="Học lại" tone="text-relearn" />
           <Stat icon={<CalendarCheckIcon weight="duotone" size={24} />} value={counts.due} label="Đến hạn" tone="text-ok" />
         </div>
-        <NeonButton className="mt-4 w-full" onClick={() => { location.hash = '#/hoc'; }}>
+        <NeonButton className="mt-4 w-full" onClick={() => { go('/hoc'); }}>
           <PlayIcon weight="fill" size={18} />
           {total ? 'Bắt đầu học' : 'Mở màn hình học'}
         </NeonButton>
@@ -63,25 +66,25 @@ export function Home() {
       <section>
         <h2 className="mb-2 text-sm font-semibold">Chương đang học</h2>
         <div className="flex flex-wrap gap-2">
-          {CHAPTERS.map((c) => (
-            <Chip key={c} on={chs.includes(c)} onClick={() => toggleChapter(c)}>Chương {ROMAN[c]}</Chip>
+          {chapters.map((c) => (
+            <Chip key={c} on={chs.includes(c)} onClick={() => toggleChapter(c)}>Chương {roman(c)}</Chip>
           ))}
         </div>
       </section>
 
       <div className="grid grid-cols-2 gap-3">
-        <a href="#/thi">
+        <a href={href('/thi')}>
           <Glass className="h-full p-3 hover:bg-white/10">
             <ExamIcon weight="duotone" size={28} className="text-new" />
             <p className="mt-1 font-semibold">Thi thử</p>
             <p className="text-xs text-mut">{last ? `Lần trước: ${last.score10} điểm` : '50 câu · 60 phút'}</p>
           </Glass>
         </a>
-        <a href="#/ho-so">
+        <a href={href('/ho-so')}>
           <Glass className="h-full p-3 hover:bg-white/10">
             <MedalIcon weight="duotone" size={28} className="text-flag" />
             <p className="mt-1 font-semibold">Huy hiệu</p>
-            <p className="text-xs text-mut">{Object.keys(game.badges).length} / {BADGES.length} đã mở</p>
+            <p className="text-xs text-mut">{Object.keys(game.badges).length} / {badgeCount} đã mở</p>
           </Glass>
         </a>
       </div>

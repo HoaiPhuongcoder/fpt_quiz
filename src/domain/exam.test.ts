@@ -1,4 +1,4 @@
-import { applyExamToCards, clampExamConfig, createExam, DEFAULT_EXAM_CONFIG, goTo, gradeExam, isCorrect, isExpired, isPinnedOption, orderOptions, selectOption, toggleFlag } from './exam';
+import { applyExamToCards, clampExamConfig, createExam, defaultExamConfig, goTo, gradeExam, isCorrect, isExpired, isPinnedOption, orderOptions, selectOption, toggleFlag } from './exam';
 import { presetParams } from './srs';
 import { MIN } from './time';
 import { mulberry32 } from './random';
@@ -11,7 +11,7 @@ const byId = Object.fromEntries(QS.map((q) => [q.n, q])) as Record<number, Quest
 
 describe('tạo đề', () => {
   it('lấy đúng chương, đúng số câu, không trùng, hạn nộp = bắt đầu + số phút', () => {
-    const ex = createExam(QS, { ...DEFAULT_EXAM_CONFIG, chapters: [2], count: 5 }, NOW, mulberry32(1));
+    const ex = createExam(QS, { ...defaultExamConfig([1, 2, 3, 4, 5, 6]), chapters: [2], count: 5 }, NOW, mulberry32(1));
     expect(ex.items).toHaveLength(5);
     expect(ex.items.every((it) => it.n > 10)).toBe(true);
     expect(new Set(ex.items.map((it) => it.n)).size).toBe(5);
@@ -19,11 +19,11 @@ describe('tạo đề', () => {
     expect(ex).toMatchObject({ startedAt: NOW, answers: {}, flagged: [], current: 0 });
   });
   it('ít câu hơn số yêu cầu thì lấy hết', () => {
-    expect(createExam(QS, { ...DEFAULT_EXAM_CONFIG, chapters: [1] }, NOW, mulberry32(1)).items).toHaveLength(10);
+    expect(createExam(QS, { ...defaultExamConfig([1, 2, 3, 4, 5, 6]), chapters: [1] }, NOW, mulberry32(1)).items).toHaveLength(10);
   });
   it('giới hạn số câu và số phút', () => {
-    expect(clampExamConfig({ ...DEFAULT_EXAM_CONFIG, count: 999, minutes: 1 })).toMatchObject({ count: 200, minutes: 5 });
-    expect(clampExamConfig({ ...DEFAULT_EXAM_CONFIG, count: 1, minutes: 999 })).toMatchObject({ count: 5, minutes: 180 });
+    expect(clampExamConfig({ ...defaultExamConfig([1, 2, 3, 4, 5, 6]), count: 999, minutes: 1 })).toMatchObject({ count: 200, minutes: 5 });
+    expect(clampExamConfig({ ...defaultExamConfig([1, 2, 3, 4, 5, 6]), count: 1, minutes: 999 })).toMatchObject({ count: 5, minutes: 180 });
   });
 });
 
@@ -47,7 +47,7 @@ describe('trộn đáp án', () => {
 });
 
 describe('làm bài', () => {
-  const ex = createExam(QS, { ...DEFAULT_EXAM_CONFIG, count: 3, shuffleOptions: false }, NOW, mulberry32(3));
+  const ex = createExam(QS, { ...defaultExamConfig([1, 2, 3, 4, 5, 6]), count: 3, shuffleOptions: false }, NOW, mulberry32(3));
   const multi = makeQ(50, 1, { a: ['A', 'C'] });
   it('câu một đáp án: chọn thay thế, bấm lại thì bỏ chọn', () => {
     const q = byId[ex.items[0].n];
@@ -85,7 +85,7 @@ describe('chấm điểm', () => {
     expect(isCorrect(multi, undefined)).toBe(false);
   });
   it('tính điểm /10, theo chương, câu bỏ trống là sai', () => {
-    const ex = createExam(QS, { ...DEFAULT_EXAM_CONFIG, count: 20, shuffleOptions: false }, NOW, mulberry32(5));
+    const ex = createExam(QS, { ...defaultExamConfig([1, 2, 3, 4, 5, 6]), count: 20, shuffleOptions: false }, NOW, mulberry32(5));
     const answers: Record<number, string[]> = {};
     ex.items.forEach((it, i) => {
       if (i < 15) answers[it.n] = ['A'];

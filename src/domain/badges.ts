@@ -1,25 +1,38 @@
-import type { Cards, ChapterId, Question } from './types';
-import { CHAPTERS, ROMAN } from './types';
+import type { Cards, ChapterId } from './types';
 import { isMature } from './queue';
+import { roman, type Subject } from './subject';
 import type { GameState } from './gamify';
 
 export type BadgeIcon = 'book' | 'crown' | 'fire' | 'lightning' | 'exam' | 'trophy' | 'target' | 'moon' | 'sun';
 export type BadgeGroup = 'chapter' | 'streak' | 'combo' | 'exam' | 'goal' | 'fun';
 export interface BadgeDef { id: string; name: string; desc: string; icon: BadgeIcon; group: BadgeGroup }
-export interface BadgeContext { cards: Cards; questions: Question[]; game: GameState; lastExamScore?: number; hour?: number }
+/** `subject` là môn đang học: chỉ huy hiệu chương của môn này được xét. */
+export interface BadgeContext { cards: Cards; subject: Subject; game: GameState; lastExamScore?: number; hour?: number }
 interface BadgeRule extends BadgeDef { test: (ctx: BadgeContext) => boolean }
 
 function mastered(ctx: BadgeContext, chapter?: ChapterId): boolean {
-  const qs = chapter ? ctx.questions.filter((q) => q.c === chapter) : ctx.questions;
+  const qs = chapter ? ctx.subject.questions.filter((q) => q.c === chapter) : ctx.subject.questions;
   return qs.length > 0 && qs.every((q) => isMature(ctx.cards[q.n]));
 }
 
-const RULES: BadgeRule[] = [
-  ...CHAPTERS.map((c): BadgeRule => ({
-    id: `ch${c}`, name: `Thuộc Chương ${ROMAN[c]}`, desc: `Thuộc mọi câu của Chương ${ROMAN[c]} (ôn cách ≥ 1 ngày)`,
-    icon: 'book', group: 'chapter', test: (ctx) => mastered(ctx, c),
-  })),
-  { id: 'all', name: 'Thuộc cả 645 câu', desc: 'Thuộc toàn bộ ngân hàng câu hỏi', icon: 'crown', group: 'chapter', test: (ctx) => mastered(ctx) },
+/** HCM202 giữ id cũ (`ch1`, `all`) để không mất huy hiệu đã mở; môn khác thêm tiền tố `${id}:`. */
+const badgeId = (s: Subject, id: string) => (s.id === 'hcm202' ? id : `${s.id}:${id}`);
+
+function subjectRules(s: Subject): BadgeRule[] {
+  const mine = (ctx: BadgeContext) => ctx.subject.id === s.id;
+  return [
+    ...s.chapters.map(({ id: c }): BadgeRule => ({
+      id: badgeId(s, `ch${c}`), name: `${s.code} · Thuộc Chương ${roman(c)}`, desc: `Thuộc mọi câu Chương ${roman(c)} môn ${s.code} (ôn cách ≥ 1 ngày)`,
+      icon: 'book', group: 'chapter', test: (ctx) => mine(ctx) && mastered(ctx, c),
+    })),
+    {
+      id: badgeId(s, 'all'), name: `${s.code} · Thuộc cả ${s.questions.length} câu`, desc: `Thuộc toàn bộ ngân hàng câu hỏi môn ${s.code}`,
+      icon: 'crown', group: 'chapter', test: (ctx) => mine(ctx) && mastered(ctx),
+    },
+  ];
+}
+
+const COMMON: BadgeRule[] = [
   ...[3, 7, 14, 30].map((d): BadgeRule => ({
     id: `streak${d}`, name: `Chuỗi ${d} ngày`, desc: `Học ${d} ngày liên tiếp`, icon: 'fire', group: 'streak', test: (ctx) => ctx.game.streak.count >= d,
   })),
@@ -34,14 +47,14 @@ const RULES: BadgeRule[] = [
   { id: 'early', name: 'Chim sớm', desc: 'Ôn bài trong khoảng 04:00–05:59', icon: 'sun', group: 'fun', test: (ctx) => ctx.hour != null && ctx.hour >= 4 && ctx.hour <= 5 },
 ];
 
-export const BADGES: BadgeDef[] = RULES.map((r) => ({ id: r.id, name: r.name, desc: r.desc, icon: r.icon, group: r.group }));
+const rules = (subjects: Subject[]): BadgeRule[] => [...subjects.flatMap(subjectRules), ...COMMON];
 
-export function badgeById(id: string): BadgeDef | undefined {
-  return BADGES.find((b) => b.id === id);
+export function badgeDefs(subjects: Subject[]): BadgeDef[] {
+  return rules(subjects).map((r) => ({ id: r.id, name: r.name, desc: r.desc, icon: r.icon, group: r.group }));
 }
 
-export function evaluateBadges(ctx: BadgeContext): string[] {
-  return RULES.filter((r) => !(r.id in ctx.game.badges) && r.test(ctx)).map((r) => r.id);
+export function evaluateBadges(ctx: BadgeContext, subjects: Subject[]): string[] {
+  return rules(subjects).filter((r) => !(r.id in ctx.game.badges) && r.test(ctx)).map((r) => r.id);
 }
 
 export function unlockBadges(g: GameState, ids: string[], now: number): GameState {

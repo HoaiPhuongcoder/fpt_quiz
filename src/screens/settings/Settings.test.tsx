@@ -3,11 +3,11 @@ import userEvent from '@testing-library/user-event';
 import type { StoreApi } from 'zustand';
 import { Settings } from './Settings';
 import { createAppStore, setAppStore, type AppState } from '../../store/appStore';
-import { createMemoryStorage, makeCard, makeQ } from '../../../test/fixtures';
+import { createMemoryStorage, makeCard, makeQ, makeSubject } from '../../../test/fixtures';
 
 let store: StoreApi<AppState>;
 beforeEach(() => {
-  store = createAppStore({ storage: createMemoryStorage(), questions: [makeQ(1)] });
+  store = createAppStore({ storage: createMemoryStorage(), subjects: [makeSubject([makeQ(1)])] });
   setAppStore(store);
 });
 
@@ -29,15 +29,16 @@ it('nhập tiến độ cũ sau khi xác nhận ghi đè', async () => {
   expect(screen.getByRole('status')).toHaveTextContent('Đã nhập tiến độ từ bản cũ (QUIZ.html).');
 });
 
-it('xóa tiến độ thì ô mục tiêu quay về mặc định', async () => {
+it('xóa tiến độ môn này: xóa thẻ, giữ mục tiêu ngày', async () => {
   const user = userEvent.setup();
   render(<Settings />);
   const goal = screen.getByLabelText(/Số câu mỗi ngày/);
   fireEvent.change(goal, { target: { value: '200' } });
   fireEvent.blur(goal);
-  expect(store.getState().game.goalTarget).toBe(200);
-  await user.click(screen.getByRole('button', { name: /Xóa toàn bộ tiến độ/ }));
+  store.setState({ cards: { 1: makeCard() } });
+  await user.click(screen.getByRole('button', { name: /Xóa tiến độ môn HCM202/ }));
   await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Xóa hết' }));
-  expect(store.getState().game.goalTarget).toBe(50);
-  expect(goal).toHaveValue(50);
+  expect(store.getState().cards).toEqual({});
+  expect(store.getState().game.goalTarget).toBe(200);
+  expect(screen.getByRole('status')).toHaveTextContent('Đã xóa tiến độ môn HCM202.');
 });

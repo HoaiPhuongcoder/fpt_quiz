@@ -1,15 +1,28 @@
-import { BADGES, badgeById, evaluateBadges, unlockBadges, type BadgeContext } from './badges';
+import { badgeDefs, evaluateBadges as evalWith, unlockBadges, type BadgeContext } from './badges';
 import { freshGame } from './gamify';
-import { makeCard, makeQ } from '../../test/fixtures';
+import { makeCard, makeQ, makeSubject } from '../../test/fixtures';
 
-const questions = [makeQ(1, 1), makeQ(2, 1), makeQ(3, 2)];
-const ctx = (over: Partial<BadgeContext> = {}): BadgeContext => ({ cards: {}, questions, game: freshGame(), ...over });
+const HCM = makeSubject([makeQ(1, 1), makeQ(2, 1), makeQ(3, 2)]);
+const MLN = makeSubject([makeQ(1, 1)], { id: 'mln131', code: 'MLN131', storagePrefix: 'quiz.v1.mln131', chapters: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ id, title: '' })) });
+const SUBJECTS = [HCM, MLN];
+const BADGES = badgeDefs(SUBJECTS);
+const badgeById = (id: string) => BADGES.find((b) => b.id === id);
+const evaluateBadges = (c: BadgeContext) => evalWith(c, SUBJECTS);
+const ctx = (over: Partial<BadgeContext> = {}): BadgeContext => ({ cards: {}, subject: HCM, game: freshGame(), ...over });
 
 describe('huy hiệu', () => {
-  it('có đúng 20 huy hiệu, id không trùng', () => {
-    expect(BADGES).toHaveLength(20);
-    expect(new Set(BADGES.map((b) => b.id)).size).toBe(20);
-    expect(badgeById('ch1')?.name).toBe('Thuộc Chương I');
+  it('13 huy hiệu chung + huy hiệu chương từng môn, id không trùng', () => {
+    expect(BADGES).toHaveLength(13 + 7 + 8);
+    expect(new Set(BADGES.map((b) => b.id)).size).toBe(BADGES.length);
+    expect(badgeById('ch1')?.name).toBe('HCM202 · Thuộc Chương I');
+    expect(badgeById('all')?.name).toBe('HCM202 · Thuộc cả 3 câu');
+    expect(badgeById('mln131:ch7')?.name).toBe('MLN131 · Thuộc Chương VII');
+    expect(badgeById('mln131:all')).toBeDefined();
+  });
+  it('chỉ xét huy hiệu chương của môn đang học', () => {
+    const cards = { 1: makeCard({ ivl: 1440 }) };
+    expect(evaluateBadges(ctx({ cards, subject: MLN }))).toEqual(expect.arrayContaining(['mln131:ch1', 'mln131:all']));
+    expect(evaluateBadges(ctx({ cards, subject: MLN }))).not.toContain('ch1');
   });
   it('thuộc chương khi mọi câu của chương là review với khoảng cách ≥ 1 ngày', () => {
     const cards = { 1: makeCard({ ivl: 1440 }), 2: makeCard({ ivl: 2880 }), 3: makeCard({ ivl: 60 }) };

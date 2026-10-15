@@ -74,9 +74,9 @@ export function QuestionView({ q, card, picked, shown, correct, now, meta, onCho
           <p className={`rounded-xl px-3 py-2 font-semibold ${correct ? 'bg-ok/10 text-ok' : 'bg-bad/10 text-bad-soft'}`}>
             {correct ? 'Chính xác!' : `Chưa đúng. Đáp án: ${q.a.join(', ')}`}
           </p>
-          <InfoBox icon={<ListChecksIcon weight="duotone" size={20} />} title="Vì sao chọn đáp án này" tone="violet">{q.y}</InfoBox>
-          <InfoBox icon={<LightbulbIcon weight="duotone" size={20} />} title="Mẹo nhận biết" tone="cyan">{q.t}</InfoBox>
-          {q.w && <InfoBox icon={<WarningIcon weight="duotone" size={20} />} title="Lệch giáo trình" tone="flag">{q.w}</InfoBox>}
+          {q.y && <InfoBox icon={<ListChecksIcon weight="duotone" size={20} />} title="Vì sao chọn đáp án này" tone="violet">{q.y}</InfoBox>}
+          {q.t && <InfoBox icon={<LightbulbIcon weight="duotone" size={20} />} title="Mẹo nhận biết" tone="cyan">{q.t}</InfoBox>}
+          {q.w && <InfoBox icon={<WarningIcon weight="duotone" size={20} />} title="Lưu ý" tone="flag">{q.w}</InfoBox>}
           {similar.length > 0 && (
             <InfoBox icon={<BooksIcon weight="duotone" size={20} />} title="Câu tương tự, dễ nhầm" tone="relearn">
               <ul className="space-y-1.5">

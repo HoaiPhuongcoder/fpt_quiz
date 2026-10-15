@@ -3,8 +3,10 @@ import { CheckCircleIcon, MagnifyingGlassIcon, XIcon } from '@phosphor-icons/rea
 import { useApp } from '../store/appStore';
 import { Chip, Glass, INPUT_CLASS, NeonButton } from '../components/ui';
 import { StatusPill } from '../components/status';
-import { CHAPTERS, ROMAN, type ChapterId, type Question } from '../domain/types';
+import { type ChapterId, type Question } from '../domain/types';
 import { highlight, parseQuery, searchQuestions } from '../domain/search';
+import { roman } from '../domain/subject';
+import { useChapterIds } from '../store/hooks';
 
 const PAGE = 30;
 const EXAMPLES = ['đoàn kết', 'cần kiệm liêm chính', '"đảng cầm quyền"', '577'];
@@ -31,7 +33,7 @@ function ResultCard({ q, terms, explain, onJump }: { q: Question; terms: string[
     <Glass className="space-y-3 p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs text-mut">
         <b className="font-num text-sm text-ink">Câu {q.n}</b>
-        <span>Ch.{ROMAN[q.c]}</span>
+        <span>Ch.{roman(q.c)}</span>
         <StatusPill card={card} />
         {q.a.length > 1 && <span>nhiều đáp án (chọn {q.a.length})</span>}
       </div>
@@ -54,8 +56,8 @@ function ResultCard({ q, terms, explain, onJump }: { q: Question; terms: string[
       </ul>
       {showExplain ? (
         <div className="space-y-2 rounded-xl bg-white/5 p-3 text-sm leading-relaxed">
-          <p><span className="font-semibold text-violet-soft">Vì sao: </span><Marked text={q.y} terms={terms} /></p>
-          <p><span className="font-semibold text-new">Mẹo: </span><Marked text={q.t} terms={terms} /></p>
+          {q.y && <p><span className="font-semibold text-violet-soft">Vì sao: </span><Marked text={q.y} terms={terms} /></p>}
+          {q.t && <p><span className="font-semibold text-new">Mẹo: </span><Marked text={q.t} terms={terms} /></p>}
           {q.w && <p><span className="font-semibold text-flag">Lưu ý: </span><Marked text={q.w} terms={terms} /></p>}
           {q.s.length > 0 && (
             <p className="flex flex-wrap items-center gap-1.5">
@@ -87,6 +89,7 @@ export function Search() {
   const questions = useApp((s) => s.questions);
   const [query, setQueryState] = useState(lastQuery);
   const [chs, setChs] = useState<ChapterId[]>([]);
+  const chapters = useChapterIds();
   const [explain, setExplain] = useState(false);
   const [limit, setLimit] = useState(PAGE);
   const deferred = useDeferredValue(query);
@@ -97,7 +100,7 @@ export function Search() {
     setLimit(PAGE);
   };
   const toggleCh = (c: ChapterId) => {
-    setChs((cur) => (cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c].sort()));
+    setChs((cur) => (cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c].sort((a, b) => a - b)));
     setLimit(PAGE);
   };
 
@@ -128,7 +131,7 @@ export function Search() {
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo chương">
         <Chip on={chs.length === 0} onClick={() => { setChs([]); setLimit(PAGE); }}>Mọi chương</Chip>
-        {CHAPTERS.map((c) => <Chip key={c} on={chs.includes(c)} onClick={() => toggleCh(c)}>Ch.{ROMAN[c]}</Chip>)}
+        {chapters.map((c) => <Chip key={c} on={chs.includes(c)} onClick={() => toggleCh(c)}>Ch.{roman(c)}</Chip>)}
       </div>
       <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-mut">
         <input type="checkbox" checked={explain} onChange={(e) => setExplain(e.target.checked)} className="size-4 accent-violet" />

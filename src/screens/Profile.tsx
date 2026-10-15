@@ -3,10 +3,10 @@ import { FireIcon, GearSixIcon } from '@phosphor-icons/react';
 import { useApp } from '../store/appStore';
 import { Glass, ProgressBar, XpRing } from '../components/ui';
 import { BadgeTile } from '../components/BadgeTile';
-import { BADGES } from '../domain/badges';
 import { displayStreak, isStudyDay, levelInfo } from '../domain/gamify';
 import { isMature } from '../domain/queue';
 import { dayKey, lastNDays } from '../domain/time';
+import { href } from '../store/nav';
 
 function weekday(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
@@ -15,6 +15,7 @@ function weekday(key: string): string {
 
 export function Profile() {
   const game = useApp((s) => s.game);
+  const BADGES = useApp((s) => s.badges);
   const cards = useApp((s) => s.cards);
   const questions = useApp((s) => s.questions);
   const now = useApp((s) => s.now);
@@ -42,7 +43,7 @@ export function Profile() {
           <h1 className="text-xl font-bold">{lv.title}</h1>
           <p className="text-sm text-mut"><span className="font-num">{lv.into}</span> / <span className="font-num">{lv.need}</span> XP · tới Cấp {lv.level + 1}</p>
         </div>
-        <a href="#/cai-dat" aria-label="Cài đặt" className="grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10">
+        <a href={href('/cai-dat')} aria-label="Cài đặt" className="grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10">
           <GearSixIcon size={24} />
         </a>
       </header>

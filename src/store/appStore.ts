@@ -4,12 +4,13 @@ import type { ChapterId, PresetId, Question, Rating, SrsConfig } from '../domain
 import { presetParams, schedule } from '../domain/srs';
 import { pickNext, poolFor } from '../domain/queue';
 import { dayKey, fmt } from '../domain/time';
-import { answerXp, examXp, freshGame, recordActivity, type GameState } from '../domain/gamify';
-import { badgeById, evaluateBadges, unlockBadges } from '../domain/badges';
+import { answerXp, examXp, recordActivity, type GameState } from '../domain/gamify';
+import { badgeDefs, evaluateBadges, unlockBadges, type BadgeDef } from '../domain/badges';
 import { applyExamToCards, createExam, goTo, gradeExam, isExpired, selectOption, toggleFlag, type ExamConfig, type ExamResult } from '../domain/exam';
 import type { Rng } from '../domain/random';
 import { SNAPSHOT_KEYS, type AppStorage, type Snapshot } from '../storage/local';
-import { exportData, parseImport } from '../storage/io';
+import { exportAll, parseImport, type SubjectData } from '../storage/io';
+import type { Subject } from '../domain/subject';
 
 export const RATING_NAMES = ['', 'Lại', 'Khó', 'Được', 'Dễ'] as const;
 export const EXAM_HISTORY_LIMIT = 30;
@@ -21,12 +22,16 @@ export interface StudySession {
 export interface Toast { id: number; text: string; kind: 'info' | 'xp' | 'badge' | 'error' }
 
 export interface AppState extends Snapshot {
+  subject: Subject;
+  subjects: Subject[];
+  badges: BadgeDef[];
   questions: Question[];
   byId: Record<number, Question>;
   now: number;
   study: StudySession;
   toasts: Toast[];
   tick(): void;
+  switchSubject(id: string): void;
   toggleChapter(c: ChapterId): void;
   startStudy(): void;
   nextCard(): void;
@@ -48,12 +53,13 @@ export interface AppState extends Snapshot {
   setGoalTarget(n: number): void;
   exportJson(): string;
   importJson(text: string): { ok: boolean; message: string };
-  resetAll(): void;
+  resetSubject(): void;
   pushToast(text: string, kind?: Toast['kind']): void;
   dismissToast(id: number): void;
 }
 
-export interface AppDeps { storage: AppStorage; questions: Question[]; now?: () => number; rand?: Rng }
+/** Môn ban đầu: `initialSubject` → môn đã chọn lần trước → môn đầu tiên. */
+export interface AppDeps { storage: AppStorage; subjects: Subject[]; initialSubject?: string; now?: () => number; rand?: Rng }
 
 const emptySession = (now: number): StudySession => ({
   cur: null, picked: [], shown: false, correct: false, ahead: false,
@@ -66,8 +72,13 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
   const now = deps.now ?? Date.now;
   const rand = deps.rand ?? Math.random;
   const t0 = now();
-  const snap = deps.storage.load();
-  const byId = Object.fromEntries(deps.questions.map((q) => [q.n, q])) as Record<number, Question>;
+  const { subjects, storage } = deps;
+  const find = (id: string | null | undefined) => subjects.find((x) => x.id === id);
+  const first = find(deps.initialSubject) ?? find(storage.loadActive()) ?? subjects[0];
+  const snap = storage.load(first);
+  const badges = badgeDefs(subjects);
+  const byIdOf = (sub: Subject) => Object.fromEntries(sub.questions.map((q) => [q.n, q])) as Record<number, Question>;
+  const dataOf = (st: Pick<AppState, 'cards' | 'cfg' | 'examHistory'>): SubjectData => ({ cards: st.cards, cfg: st.cfg, examHistory: st.examHistory });
 
   const store = createStore<AppState>()((set, get) => {
     const toast = (text: string, kind: Toast['kind'] = 'info') =>
@@ -76,15 +87,18 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
     /** Thông báo mục tiêu ngày, kiểm tra và mở huy hiệu mới. */
     const settle = (game: GameState, goalJustHit: boolean, cards: AppState['cards'], extra: { lastExamScore?: number; hour?: number }, t: number) => {
       if (goalJustHit) toast('Đạt mục tiêu hôm nay! +50 XP', 'xp');
-      const ids = evaluateBadges({ cards, questions: deps.questions, game, ...extra });
-      for (const id of ids) toast(`Mở khóa huy hiệu: ${badgeById(id)?.name ?? id}`, 'badge');
+      const ids = evaluateBadges({ cards, subject: get().subject, game, ...extra }, subjects);
+      for (const id of ids) toast(`Mở khóa huy hiệu: ${badges.find((b) => b.id === id)?.name ?? id}`, 'badge');
       return { game: unlockBadges(game, ids, t), ids };
     };
 
     return {
       ...snap,
-      questions: deps.questions,
-      byId,
+      subject: first,
+      subjects,
+      badges,
+      questions: first.questions,
+      byId: byIdOf(first),
       now: t0,
       study: emptySession(t0),
       toasts: [],
@@ -93,6 +107,15 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
         const t = now();
         const k = dayKey(t);
         set(get().day.d !== k ? { now: t, day: { d: k, newSeen: 0, done: 0, ok: 0 } } : { now: t });
+      },
+
+      switchSubject(id) {
+        const next = find(id);
+        if (!next || next.id === get().subject.id) return;
+        const { cards, cfg, day, examCurrent, examHistory } = storage.load(next);
+        const t = now();
+        set({ subject: next, questions: next.questions, byId: byIdOf(next), cards, cfg, day, examCurrent, examHistory, now: t, study: emptySession(t) });
+        storage.saveActive(next.id);
       },
 
       toggleChapter(c) {
@@ -239,19 +262,26 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
       },
 
       exportJson() {
-        return exportData(get());
+        const s = get();
+        const all = Object.fromEntries(subjects.map((sub) => [sub.id, dataOf(sub.id === s.subject.id ? s : storage.load(sub))]));
+        return exportAll(s.game, all);
       },
 
       importJson(text) {
-        const r = parseImport(text, get());
+        const s = get();
+        const r = parseImport(text, (id) => (id === s.subject.id ? s.cfg : storage.load(find(id)!).cfg), subjects.map((x) => x.id));
         if (!r.ok) return { ok: false, message: r.error };
-        set({ ...r.data });
+        for (const [id, data] of Object.entries(r.subjects)) {
+          if (id !== s.subject.id) storage.save(find(id)!, data);
+        }
+        const mine = r.subjects[s.subject.id];
+        set({ ...(r.game ? { game: r.game } : {}), ...(mine ?? {}) });
         return { ok: true, message: r.legacy ? 'Đã nhập tiến độ từ bản cũ (QUIZ.html).' : 'Đã nhập tiến độ.' };
       },
 
-      resetAll() {
+      resetSubject() {
         const t = now();
-        set({ cards: {}, game: freshGame(), examCurrent: null, examHistory: [], day: { d: dayKey(t), newSeen: 0, done: 0, ok: 0 }, study: emptySession(t) });
+        set({ cards: {}, examCurrent: null, examHistory: [], day: { d: dayKey(t), newSeen: 0, done: 0, ok: 0 }, study: emptySession(t) });
       },
 
       pushToast: toast,
@@ -263,13 +293,15 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
   });
 
   // Ghi xuống storage mọi phần dữ liệu vừa đổi tham chiếu.
+  // Lần đổi môn chỉ nạp dữ liệu, không ghi lại.
   store.subscribe((s, prev) => {
+    if (s.subject !== prev.subject) return;
     const patch: Partial<Record<keyof Snapshot, unknown>> = {};
     let changed = false;
     for (const k of SNAPSHOT_KEYS) {
       if (s[k] !== prev[k]) { patch[k] = s[k]; changed = true; }
     }
-    if (changed) deps.storage.save(patch as Partial<Snapshot>);
+    if (changed) storage.save(s.subject, patch as Partial<Snapshot>);
   });
 
   return store;
