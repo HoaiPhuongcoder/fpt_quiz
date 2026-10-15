@@ -17,7 +17,7 @@
   --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
   --font-num: "Space Grotesk", "Be Vietnam Pro", sans-serif;
   --animate-xp: xp-float 900ms ease-out forwards;
-  --animate-bob: bob 3.2s ease-in-out infinite;
+  --animate-wiggle: wiggle 1.6s ease-in-out infinite;
   --animate-pop-in: pop-in 500ms cubic-bezier(.2,1.4,.4,1) both;
   --animate-steam: steam 2.4s ease-out infinite;
 
@@ -26,9 +26,9 @@
     20% { opacity: 1; }
     100% { opacity: 0; transform: translateY(-14px); }
   }
-  @keyframes bob {
-    0%, 100% { transform: translateY(0) rotate(-1.5deg); }
-    50% { transform: translateY(-10px) rotate(1.5deg); }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
   }
   @keyframes pop-in {
     0% { opacity: 0; transform: translateY(24px) scale(.8); }

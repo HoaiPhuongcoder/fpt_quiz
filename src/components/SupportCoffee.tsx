@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CoffeeIcon, CopyIcon, DownloadSimpleIcon, HeartIcon, XIcon } from '@phosphor-icons/react';
 import { useApp } from '../store/appStore';
+import { Modal } from './ui';
 
 const QR_SRC = '/ung-ho-momo.webp';
 const RECEIVER = 'NGUYEN HOAI PHUONG';
@@ -28,45 +29,132 @@ export function SupportCoffee() {
 /** Đã bấm X trong lần vào web này chưa; tải lại hay mở web lần sau thì bong bóng hiện lại. */
 let dismissedThisVisit = false;
 
-/** Bong bóng cà phê bay lơ lửng ở góc trang chủ; bấm mở hộp ủng hộ, bấm X thì ẩn tới lần vào web sau. */
+/** Bong bóng cà phê ở trang chủ; bấm mở hộp ủng hộ, bấm X thì ẩn tới lần vào web sau. */
 export function CoffeeFloat() {
   const [hidden, setHidden] = useState(dismissedThisVisit);
-  const [open, setOpen] = useState(false);
   if (hidden) return null;
+  return (
+    <FlyingCoffee
+      onDismiss={() => {
+        dismissedThisVisit = true;
+        setHidden(true);
+      }}
+    />
+  );
+}
 
-  const dismiss = () => {
-    dismissedThisVisit = true;
-    setHidden(true);
-  };
+/** Khoảng cách tới mép màn hình, chừa chỗ cho nút X lòi ra ở góc trên bên phải. */
+const EDGE = 16;
+
+/** Vùng được bay: cả màn hình trừ thanh điều hướng (ở đáy trên điện thoại, cột trái trên máy tính). */
+function flyArea(w: number, h: number) {
+  let left = EDGE;
+  let bottom = window.innerHeight - EDGE;
+  const nav = document.querySelector('nav[aria-label="Điều hướng chính"]')?.getBoundingClientRect();
+  if (nav && nav.height > 0) {
+    if (nav.top > window.innerHeight / 2) bottom = nav.top - EDGE;
+    else if (nav.right < window.innerWidth / 2) left = nav.right + EDGE;
+  }
+  return { minX: left, maxX: Math.max(left, window.innerWidth - w - EDGE), minY: EDGE, maxY: Math.max(EDGE, bottom - h) };
+}
+
+/** Bay chéo kiểu logo DVD: chạm mép thì nảy bẹp một cái rồi đổi hướng; rê chuột/chạm vào hoặc đang mở hộp thì dừng. */
+function FlyingCoffee({ onDismiss }: { onDismiss: () => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const body = useRef<HTMLDivElement>(null);
+  const paused = useRef(false);
+  const dialogOpen = useRef(false);
+  dialogOpen.current = open;
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const place = (x: number, y: number) => {
+      el.style.transform = `translate(${x}px, ${y}px)`;
+    };
+    let area = flyArea(el.offsetWidth, el.offsetHeight);
+    let x = area.maxX;
+    let y = area.maxY;
+    place(x, y);
+    if (typeof requestAnimationFrame !== 'function' || matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    const speed = 60 + window.innerWidth * 0.05;
+    let vx = -speed / Math.SQRT2;
+    let vy = -speed / Math.SQRT2;
+    let last = performance.now();
+    let frame = 0;
+    const onResize = () => {
+      area = flyArea(el.offsetWidth, el.offsetHeight);
+    };
+    const squash = (sx: number, sy: number) =>
+      body.current?.animate?.([{ transform: `scale(${sx}, ${sy})` }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+
+    const step = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (!paused.current && !dialogOpen.current) {
+        x += vx * dt;
+        y += vy * dt;
+        if (x <= area.minX || x >= area.maxX) {
+          x = Math.min(area.maxX, Math.max(area.minX, x));
+          vx = -vx;
+          squash(0.85, 1.12);
+        }
+        if (y <= area.minY || y >= area.maxY) {
+          y = Math.min(area.maxY, Math.max(area.minY, y));
+          vy = -vy;
+          squash(1.12, 0.85);
+        }
+        place(x, y);
+      }
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    window.addEventListener('resize', onResize);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
 
   return (
     <>
-      <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+76px)] right-4 z-30 animate-pop-in [animation-delay:800ms] lg:bottom-8 lg:right-8">
-        <div className="relative animate-bob">
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Thấy web có ích? Mời mình ly cà phê"
-            className="flex items-center gap-3 rounded-2xl border border-streak/50 bg-[#1f1530]/95 py-3 pl-3 pr-5 text-left shadow-[0_0_28px_rgba(255,162,92,.35)] backdrop-blur-md transition hover:scale-[1.03] hover:border-streak active:scale-95"
-          >
-            <span className="relative grid size-12 shrink-0 place-items-center rounded-full bg-linear-to-br from-streak to-relearn text-white shadow-[0_0_16px_rgba(255,162,92,.55)]">
-              <span aria-hidden className="absolute -top-2 left-4 h-3 w-1 animate-steam rounded-full bg-white/70" />
-              <span aria-hidden className="absolute -top-2 left-7 h-3 w-1 animate-steam rounded-full bg-white/70 [animation-delay:1.2s]" />
-              <CoffeeIcon size={28} weight="fill" />
-            </span>
-            <span>
-              <span className="block text-xs text-mut">Thấy web có ích?</span>
-              <span className="block font-bold text-streak">Mời mình ly cà phê</span>
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={dismiss}
-            aria-label="Ẩn lời mời cà phê"
-            className="absolute -right-3 -top-3 grid size-9 place-items-center rounded-full border border-white/20 bg-[#2a2350] text-ink shadow-lg transition hover:bg-bad hover:text-white"
-          >
-            <XIcon size={18} weight="bold" />
-          </button>
+      <div
+        ref={box}
+        className="fixed left-0 top-0 z-30 will-change-transform"
+        onPointerEnter={() => (paused.current = true)}
+        onPointerLeave={() => (paused.current = false)}
+        onFocus={() => (paused.current = true)}
+        onBlur={() => (paused.current = false)}
+      >
+        <div className="animate-pop-in [animation-delay:800ms]">
+          <div ref={body} className="relative">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label="Thấy web có ích? Mời mình ly cà phê"
+              className="flex items-center gap-3 rounded-2xl border border-streak/50 bg-[#1f1530]/95 py-3 pl-3 pr-5 text-left shadow-[0_0_28px_rgba(255,162,92,.35)] backdrop-blur-md transition hover:scale-[1.03] hover:border-streak active:scale-95"
+            >
+              <span className="relative grid size-12 shrink-0 place-items-center rounded-full bg-linear-to-br from-streak to-relearn text-white shadow-[0_0_16px_rgba(255,162,92,.55)]">
+                <span aria-hidden className="absolute -top-2 left-4 h-3 w-1 animate-steam rounded-full bg-white/70" />
+                <span aria-hidden className="absolute -top-2 left-7 h-3 w-1 animate-steam rounded-full bg-white/70 [animation-delay:1.2s]" />
+                <CoffeeIcon size={28} weight="fill" className="animate-wiggle" />
+              </span>
+              <span>
+                <span className="block text-xs text-mut">Thấy web có ích?</span>
+                <span className="block font-bold text-streak">Mời mình ly cà phê</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={onDismiss}
+              aria-label="Ẩn lời mời cà phê"
+              className="absolute -right-3 -top-3 grid size-9 place-items-center rounded-full border border-white/20 bg-[#2a2350] text-ink shadow-lg transition hover:bg-bad hover:text-white"
+            >
+              <XIcon size={18} weight="bold" />
+            </button>
+          </div>
         </div>
       </div>
       {open && <SupportDialog onClose={() => setOpen(false)} />}
@@ -76,14 +164,6 @@ export function CoffeeFloat() {
 
 function SupportDialog({ onClose }: { onClose: () => void }) {
   const pushToast = useApp((s) => s.pushToast);
-  const closeBtn = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    closeBtn.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
 
   const copyAccount = async () => {
     try {
@@ -95,23 +175,7 @@ function SupportDialog({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="support-title"
-        className="relative max-h-[90dvh] w-full max-w-sm overflow-y-auto rounded-2xl border border-white/10 bg-[#15102b] p-5 shadow-xl"
-      >
-        <button
-          ref={closeBtn}
-          type="button"
-          onClick={onClose}
-          aria-label="Đóng"
-          className="absolute right-2 top-2 grid size-11 place-items-center rounded-xl text-mut hover:bg-white/10 hover:text-ink"
-        >
-          <XIcon size={20} />
-        </button>
-
+    <Modal labelledBy="support-title" onClose={onClose}>
         <h2 id="support-title" className="flex items-center gap-2 pr-10 text-lg font-bold">
           <CoffeeIcon size={24} weight="fill" className="text-streak" />
           Mời mình một ly cà phê
@@ -162,7 +226,6 @@ function SupportDialog({ onClose }: { onClose: () => void }) {
           Cảm ơn bạn rất nhiều
           <HeartIcon size={16} weight="fill" className="text-relearn" />
         </p>
-      </div>
-    </div>
+    </Modal>
   );
 }
