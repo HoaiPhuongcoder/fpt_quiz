@@ -47,3 +47,14 @@ it('mở link có mã môn khác thì chuyển sang môn đó', async () => {
   render(<App />);
   expect(await screen.findByRole('radio', { name: /MLN131/, checked: true })).toBeInTheDocument();
 });
+
+it('nút mời cà phê ở chân trang mở hộp có mã QR, Esc để đóng', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(screen.getByRole('button', { name: /Mời mình ly cà phê/ }));
+  const dialog = screen.getByRole('dialog', { name: /Mời mình một ly cà phê/ });
+  expect(dialog).toContainElement(screen.getByRole('img', { name: /Mã QR chuyển khoản/ }));
+  expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus();
+  await user.keyboard('{Escape}');
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});

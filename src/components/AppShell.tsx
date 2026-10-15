@@ -3,6 +3,7 @@ import { BooksIcon, HouseIcon, MagnifyingGlassIcon, TimerIcon, UserCircleIcon, t
 import type { RouteName } from '../router';
 import { href } from '../store/nav';
 import { SubjectSwitcher } from './SubjectSwitcher';
+import { SupportCoffee } from './SupportCoffee';
 
 const TABS: { path: string; label: string; Icon: Icon; match: RouteName[] }[] = [
   { path: '/', label: 'Trang chủ', Icon: HouseIcon, match: ['home'] },
@@ -40,9 +41,12 @@ export function AppShell({ active, children }: { active: RouteName; children: Re
       <main className="mx-auto w-full max-w-[560px] px-4 pb-28 pt-[calc(env(safe-area-inset-top)+16px)] lg:pb-12 lg:pt-10">
         <SubjectSwitcher className="mb-5" />
         {children}
-        <footer className="mt-10 flex justify-center gap-4 text-xs text-dim">
-          <a href="/gioi-thieu/" className="hover:text-mut">Giới thiệu</a>
-          <a href="/chinh-sach-quyen-rieng-tu/" className="hover:text-mut">Chính sách quyền riêng tư</a>
+        <footer className="mt-10 grid justify-items-center gap-4">
+          <SupportCoffee />
+          <div className="flex justify-center gap-4 text-xs text-dim">
+            <a href="/gioi-thieu/" className="hover:text-mut">Giới thiệu</a>
+            <a href="/chinh-sach-quyen-rieng-tu/" className="hover:text-mut">Chính sách quyền riêng tư</a>
+          </div>
         </footer>
       </main>
     </div>
