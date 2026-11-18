@@ -1,12 +1,12 @@
-import type { Card, Cards, ChapterId, Question } from './types';
+import type { Card, Cards, ChapterId, QRange, Question } from './types';
 import { DAY, MIN } from './time';
 import type { Rng } from './random';
 
 export interface Counts { nw: number; lr: number; lrDue: number; due: number; later: number; mature: number; newLeft: number }
 export interface PickOptions { newPerDay: number; newSeen: number; order: 'random' | 'seq'; ahead: boolean; rand: Rng }
 
-export function poolFor(questions: Question[], chs: ChapterId[]): Question[] {
-  return questions.filter((q) => chs.includes(q.c));
+export function poolFor(questions: Question[], chs: ChapterId[], range: QRange | null = null): Question[] {
+  return questions.filter((q) => chs.includes(q.c) && (!range || (q.n >= range[0] && q.n <= range[1])));
 }
 
 export function isMature(c: Card | undefined): boolean {

@@ -1,4 +1,8 @@
 export type ChapterId = number;
+/** Khoảng số câu [từ, đến], tính cả hai đầu. */
+export type QRange = [from: number, to: number];
+/** Câu đã làm sai: số câu → số lần sai. */
+export type WrongMap = Record<number, number>;
 
 export interface Question {
   n: number;
@@ -49,6 +53,8 @@ export interface SrsConfig extends SrsParams {
   preset: PresetId | 'custom';
   newPerDay: number;
   chs: ChapterId[];
+  /** Chỉ học các câu trong khoảng này; null = mọi câu. */
+  range: QRange | null;
   order: 'random' | 'seq';
 }
 export interface DayState {

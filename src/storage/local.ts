@@ -1,4 +1,4 @@
-import type { Cards, DayState, SrsConfig } from '../domain/types';
+import type { Cards, DayState, QRange, SrsConfig, WrongMap } from '../domain/types';
 import { DEFAULT_CONFIG } from '../domain/srs';
 import { freshGame, type GameState } from '../domain/gamify';
 import type { ExamResult, ExamSession } from '../domain/exam';
@@ -12,12 +12,16 @@ export interface Snapshot {
   game: GameState;
   examCurrent: ExamSession | null;
   examHistory: ExamResult[];
+  /** Câu gắn sao. */
+  starred: number[];
+  /** Câu đã làm sai, chưa làm đúng lại khi luyện câu sai. */
+  wrong: WrongMap;
 }
 export type SnapshotKey = keyof Snapshot;
-export const SNAPSHOT_KEYS: SnapshotKey[] = ['cards', 'cfg', 'day', 'game', 'examCurrent', 'examHistory'];
+export const SNAPSHOT_KEYS: SnapshotKey[] = ['cards', 'cfg', 'day', 'game', 'examCurrent', 'examHistory', 'starred', 'wrong'];
 /** Hậu tố key của từng phần. Key thật = `${subject.storagePrefix}.${hậu tố}`; riêng `game` dùng chung mọi môn. */
 const SUFFIX: Record<SnapshotKey, string> = {
-  cards: 'cards', cfg: 'cfg', day: 'day', game: 'game', examCurrent: 'exam.current', examHistory: 'exam.history',
+  cards: 'cards', cfg: 'cfg', day: 'day', game: 'game', examCurrent: 'exam.current', examHistory: 'exam.history', starred: 'starred', wrong: 'wrong',
 };
 export const GAME_KEY = 'hcm.v1.game';
 export const ACTIVE_KEY = 'quiz.subject';
@@ -47,10 +51,27 @@ export function defaultSnapshot(now: number, chapters: number[]): Snapshot {
     game: freshGame(),
     examCurrent: null,
     examHistory: [],
+    starred: [],
+    wrong: {},
   };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+export function readStarred(v: unknown): number[] | null {
+  return Array.isArray(v) ? [...new Set(v.filter((n): n is number => Number.isInteger(n)))] : null;
+}
+
+export function readWrong(v: unknown): WrongMap | null {
+  if (!isObj(v)) return null;
+  const out: WrongMap = {};
+  for (const [k, c] of Object.entries(v)) if (/^\d+$/.test(k) && typeof c === 'number' && c > 0) out[Number(k)] = c;
+  return out;
+}
+
+function validRange(v: unknown): QRange | null {
+  return Array.isArray(v) && v.length === 2 && v.every(Number.isInteger) && v[0] <= v[1] ? [v[0], v[1]] : null;
+}
 
 /** Chỉ giữ chương có thật của môn; rỗng thì học mọi chương. */
 function validChapters(chs: unknown, all: number[]): number[] {
@@ -63,11 +84,13 @@ function normalize(raw: Partial<Record<SnapshotKey, unknown>>, now: number, chap
   const cfg = isObj(raw.cfg) ? { ...d.cfg, ...(raw.cfg as Partial<SrsConfig>) } : d.cfg;
   return {
     cards: isObj(raw.cards) ? (raw.cards as Cards) : d.cards,
-    cfg: { ...cfg, chs: validChapters(cfg.chs, chapters) },
+    cfg: { ...cfg, chs: validChapters(cfg.chs, chapters), range: validRange(cfg.range) },
     day: isObj(raw.day) ? { ...d.day, ...(raw.day as Partial<DayState>) } : d.day,
     game: isObj(raw.game) ? { ...d.game, ...(raw.game as Partial<GameState>) } : d.game,
     examCurrent: isObj(raw.examCurrent) ? (raw.examCurrent as unknown as ExamSession) : null,
     examHistory: Array.isArray(raw.examHistory) ? (raw.examHistory as ExamResult[]) : [],
+    starred: readStarred(raw.starred) ?? [],
+    wrong: readWrong(raw.wrong) ?? {},
   };
 }
 

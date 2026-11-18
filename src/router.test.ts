@@ -51,3 +51,13 @@ describe('migrateHashUrl', () => {
     expect(location.pathname).toBe('/hcm202/hoc');
   });
 });
+
+describe('luyện tập', () => {
+  it.each([
+    ['/vnr202/luyen-tap', { subject: 'vnr202', name: 'practice' }],
+    ['/vnr202/luyen-tap/sao', { subject: 'vnr202', name: 'practice', param: 'sao' }],
+    ['/vnr202/luyen', { subject: 'vnr202', name: 'drill' }],
+  ])('%s', (path, route) => {
+    expect(parsePath(path, ['vnr202'])).toEqual(route);
+  });
+});

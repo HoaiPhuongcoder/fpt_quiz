@@ -22,6 +22,7 @@ export function Study() {
   const nextCard = useApp((s) => s.nextCard);
   const choose = useApp((s) => s.choose);
   const rate = useApp((s) => s.rate);
+  const toggleStar = useApp((s) => s.toggleStar);
   const counts = useCounts();
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +51,7 @@ export function Study() {
       if (e.key === 'Escape') { e.preventDefault(); exit(); return; }
       if (!q) return;
       const k = e.key.toUpperCase();
+      if (k === 'S') { e.preventDefault(); toggleStar(q.n); return; }
       if (!study.shown) {
         const key = KEY_MAP[k];
         if (key && q.o.some(([o]) => o === key)) { e.preventDefault(); choose(key); }
@@ -93,7 +95,7 @@ export function Study() {
         {q && study.shown ? (
           <RatingBar preview={preview} correct={study.correct} onRate={rate} />
         ) : (
-          <p className="py-2 text-center text-sm text-mut">{q ? 'Chọn đáp án: bấm hoặc phím A–E / 1–5 · Esc để thoát' : 'Esc để thoát'}</p>
+          <p className="py-2 text-center text-sm text-mut">{q ? 'Chọn đáp án: bấm hoặc phím A–E / 1–5 · S gắn sao · Esc để thoát' : 'Esc để thoát'}</p>
         )}
       </div>
     </div>

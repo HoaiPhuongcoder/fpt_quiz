@@ -6,7 +6,8 @@ import type { Question } from '../domain/types';
 export function usePool(): Question[] {
   const questions = useApp((s) => s.questions);
   const chs = useApp((s) => s.cfg.chs);
-  return useMemo(() => poolFor(questions, chs), [questions, chs]);
+  const range = useApp((s) => s.cfg.range);
+  return useMemo(() => poolFor(questions, chs, range), [questions, chs, range]);
 }
 
 export function useCounts(): Counts {

@@ -21,6 +21,10 @@ describe('parseQuizMd', () => {
     expect(r[0].q).toBe('Dòng một dòng hai?');
     expect(r[1].q).toBe('Hỏi?');
   });
+  it('lựa chọn gạch đầu dòng bằng dấu *, đáp án cách nhau dấu phẩy', () => {
+    const r = parseQuizMd(md('## Câu 7\n\nHỏi?\n\n* A. x\n* B. y\n* C. z\n* D. t\n\n**Đáp án:** A, D\n'));
+    expect(r[0]).toMatchObject({ o: [['A', 'x'], ['B', 'y'], ['C', 'z'], ['D', 't']], a: ['A', 'D'] });
+  });
   it('đáp án không có trong lựa chọn thì báo lỗi kèm số câu', () => {
     expect(() => parseQuizMd(md('## Câu 9\n\nHỏi?\n\n- A. x\n- B. y\n\n**Đáp án:** D\n'))).toThrow('Câu 9');
   });

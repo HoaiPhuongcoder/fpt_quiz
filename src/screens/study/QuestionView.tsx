@@ -3,6 +3,7 @@ import { BooksIcon, LightbulbIcon, ListChecksIcon, WarningIcon } from '@phosphor
 import { useApp } from '../../store/appStore';
 import { OptionButton, type OptionState } from '../../components/OptionButton';
 import { StatusPill } from '../../components/status';
+import { StarButton } from '../../components/StarButton';
 import type { Card, Question } from '../../domain/types';
 import { MIN, clock, fmt } from '../../domain/time';
 
@@ -47,18 +48,20 @@ export function CardInfo({ card, now }: { card?: Card; now: number }) {
   );
 }
 
-export function QuestionView({ q, card, picked, shown, correct, now, meta, onChoose }: {
-  q: Question; card?: Card; picked: string[]; shown: boolean; correct: boolean; now: number; meta: string; onChoose: (key: string) => void;
+/** `practice`: lượt luyện tập, không hiện trạng thái / lịch ôn của thẻ. */
+export function QuestionView({ q, card, picked, shown, correct, now, meta, onChoose, practice = false }: {
+  q: Question; card?: Card; picked: string[]; shown: boolean; correct: boolean; now: number; meta: string; onChoose: (key: string) => void; practice?: boolean;
 }) {
   const byId = useApp((s) => s.byId);
   const similar = q.s.flatMap((m) => (byId[m] ? [byId[m]] : []));
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2 text-xs text-mut">
-        <StatusPill card={card} />
+        {!practice && <StatusPill card={card} />}
         <span>{meta}</span>
-        {card?.lapses ? <span>Đã quên {card.lapses} lần</span> : null}
-        {card && card.due > now ? <span>(học trước, hạn {clock(card.due, now)})</span> : null}
+        {!practice && card?.lapses ? <span>Đã quên {card.lapses} lần</span> : null}
+        {!practice && card && card.due > now ? <span>(học trước, hạn {clock(card.due, now)})</span> : null}
+        <StarButton n={q.n} className="-my-2 ml-auto" />
       </div>
       <h2 className="text-lg font-bold leading-relaxed">
         {q.q}
@@ -89,7 +92,7 @@ export function QuestionView({ q, card, picked, shown, correct, now, meta, onCho
               </ul>
             </InfoBox>
           )}
-          <CardInfo card={card} now={now} />
+          {!practice && <CardInfo card={card} now={now} />}
         </div>
       )}
     </div>

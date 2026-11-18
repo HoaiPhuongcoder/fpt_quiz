@@ -1,5 +1,6 @@
 import hcm202 from './hcm202.json';
 import mln131 from './mln131.json';
+import vnr202 from './vnr202.json';
 import type { Question } from '../domain/types';
 import type { Subject } from '../domain/subject';
 
@@ -35,6 +36,18 @@ export const SUBJECTS: Subject[] = [
       'Cơ cấu xã hội – giai cấp và liên minh giai cấp, tầng lớp trong thời kỳ quá độ',
       'Vấn đề dân tộc và tôn giáo trong thời kỳ quá độ',
       'Vấn đề gia đình trong thời kỳ quá độ',
+    ]),
+  },
+  {
+    id: 'vnr202',
+    code: 'VNR202',
+    name: 'Lịch sử Đảng Cộng sản Việt Nam',
+    storagePrefix: 'quiz.v1.vnr202',
+    questions: vnr202 as unknown as Question[],
+    chapters: chapters([
+      'Đảng ra đời và lãnh đạo đấu tranh giành chính quyền (1930–1945)',
+      'Đảng lãnh đạo hai cuộc kháng chiến, hoàn thành giải phóng dân tộc, thống nhất đất nước (1945–1975)',
+      'Đảng lãnh đạo cả nước quá độ lên chủ nghĩa xã hội và tiến hành công cuộc đổi mới (1975–nay)',
     ]),
   },
 ];

@@ -2,8 +2,8 @@ import { SUBJECTS, subjectById } from './subjects';
 import { roman } from '../domain/subject';
 
 describe('sổ đăng ký môn', () => {
-  it('có HCM202 và MLN131, id và tiền tố lưu trữ không trùng', () => {
-    expect(SUBJECTS.map((s) => s.id)).toEqual(['hcm202', 'mln131']);
+  it('có HCM202, MLN131 và VNR202, id và tiền tố lưu trữ không trùng', () => {
+    expect(SUBJECTS.map((s) => s.id)).toEqual(['hcm202', 'mln131', 'vnr202']);
     expect(subjectById('hcm202')?.storagePrefix).toBe('hcm.v1');
     expect(new Set(SUBJECTS.map((s) => s.storagePrefix)).size).toBe(SUBJECTS.length);
     expect(subjectById('xyz')).toBeUndefined();
@@ -61,5 +61,15 @@ describe('MLN131', () => {
       expect(q.t.length).toBeGreaterThan(0);
     }
     for (const c of [1, 2, 3, 4, 5, 6, 7]) expect(qs.some((q) => q.c === c)).toBe(true);
+  });
+});
+
+describe('VNR202', () => {
+  const qs = subjectById('vnr202')!.questions;
+  it('có đủ 414 câu, 2 câu nhiều đáp án, 3 chương đều có câu', () => {
+    expect(qs).toHaveLength(414);
+    expect(qs.filter((q) => q.a.length > 1).map((q) => q.n)).toEqual([153, 212]);
+    expect(subjectById('vnr202')!.chapters).toHaveLength(3);
+    for (const c of [1, 2, 3]) expect(qs.some((q) => q.c === c)).toBe(true);
   });
 });

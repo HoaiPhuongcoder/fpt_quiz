@@ -7,17 +7,21 @@ import { type Card, type Question } from '../domain/types';
 import { MIN, clock, endOfDay, fmt } from '../domain/time';
 import { roman } from '../domain/subject';
 
-type Filter = 'studied' | 'due' | 'learn' | 'review' | 'lapsed' | 'new' | 'all';
+type Filter = 'studied' | 'due' | 'learn' | 'review' | 'lapsed' | 'new' | 'starred' | 'wrong' | 'all';
 type Sort = 'n' | 'due' | 'ivl' | 'ease' | 'lapses';
 interface Row { q: Question; c?: Card }
 
 const FILTERS: [Filter, string][] = [
-  ['studied', 'Đã học'], ['due', 'Đến hạn'], ['learn', 'Đang học'], ['review', 'Ôn tập'], ['lapsed', 'Từng quên'], ['new', 'Mới'], ['all', 'Tất cả'],
+  ['studied', 'Đã học'], ['due', 'Đến hạn'], ['learn', 'Đang học'], ['review', 'Ôn tập'], ['lapsed', 'Từng quên'], ['new', 'Mới'], ['starred', 'Gắn sao'], ['wrong', 'Câu sai'], ['all', 'Tất cả'],
 ];
 const ROW_LIMIT = 400;
 
-function matches(f: Filter, c: Card | undefined, now: number): boolean {
+interface Marks { starred: number[]; wrong: Record<number, number> }
+
+function matches(f: Filter, n: number, c: Card | undefined, now: number, m: Marks): boolean {
   switch (f) {
+    case 'starred': return m.starred.includes(n);
+    case 'wrong': return n in m.wrong;
     case 'all': return true;
     case 'new': return !c;
     case 'studied': return !!c;
@@ -42,6 +46,8 @@ function CardsTab() {
   const now = useApp((s) => s.now);
   const resetCard = useApp((s) => s.resetCard);
   const makeDueNow = useApp((s) => s.makeDueNow);
+  const starred = useApp((s) => s.starred);
+  const wrong = useApp((s) => s.wrong);
   const [filter, setFilter] = useState<Filter>('studied');
   const [sort, setSort] = useState<Sort>('due');
   const [open, setOpen] = useState<number | null>(null);
@@ -50,9 +56,9 @@ function CardsTab() {
     const key = SORT_KEY[sort];
     return pool
       .map((q): Row => ({ q, c: cards[q.n] }))
-      .filter(({ c }) => matches(filter, c, now))
+      .filter(({ q, c }) => matches(filter, q.n, c, now, { starred, wrong }))
       .sort((a, b) => { const x = key(a), y = key(b); return x === y ? 0 : x < y ? -1 : 1; });
-  }, [pool, cards, now, filter, sort]);
+  }, [pool, cards, now, filter, sort, starred, wrong]);
 
   const th = (label: string, s?: Sort) => (
     <th scope="col" className={`whitespace-nowrap px-2 py-2 text-left font-semibold text-mut ${s ? 'cursor-pointer hover:text-ink' : ''}`} onClick={s ? () => setSort(s) : undefined}>

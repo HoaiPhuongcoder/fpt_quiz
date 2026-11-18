@@ -224,3 +224,66 @@ describe('nhiều môn', () => {
     expect(Object.keys(app.s.cards)).toEqual(['2']);
   });
 });
+
+describe('câu sai, gắn sao, khoảng câu, luyện tập', () => {
+  it('làm sai khi học thì vào danh sách câu sai, làm đúng thì không', () => {
+    const app = setup();
+    app.s.startStudy();
+    app.s.choose('B');
+    expect(app.s.wrong).toEqual({ 1: 1 });
+    app.s.rate(1);
+    answerRight(app);
+    expect(Object.keys(app.s.wrong)).toEqual(['1']);
+  });
+  it('gắn / bỏ sao, lưu xuống storage', () => {
+    const app = setup();
+    app.s.toggleStar(2);
+    app.s.toggleStar(3);
+    app.s.toggleStar(2);
+    expect(app.s.starred).toEqual([3]);
+    expect(app.storage.saved.starred).toEqual([3]);
+  });
+  it('khoảng câu giới hạn phiên học; phủ hết thì về null', () => {
+    const app = setup();
+    app.s.setRange([3, 2]);
+    expect(app.s.cfg.range).toEqual([2, 3]);
+    app.s.startStudy();
+    expect(app.s.study.cur).toBe(2);
+    app.s.setRange([0, 99]);
+    expect(app.s.cfg.range).toBeNull();
+  });
+  it('luyện câu sai: làm đúng thì gỡ khỏi danh sách, làm sai thì tăng số lần', () => {
+    const app = setup({ wrong: { 1: 1, 2: 2 } });
+    app.s.startDrill('wrong', [2, 1], false);
+    expect(app.s.drill!.queue).toEqual([1, 2]);
+    app.s.drillChoose('A');
+    expect(app.s.drill).toMatchObject({ shown: true, correct: true, right: [1] });
+    expect(app.s.wrong).toEqual({ 2: 2 });
+    app.s.drillNext();
+    app.s.drillChoose('C');
+    expect(app.s.wrong).toEqual({ 2: 3 });
+    app.s.drillNext();
+    expect(app.s.drill).toMatchObject({ i: 2, missed: [2] });
+    expect(app.s.cards).toEqual({});
+  });
+  it('luyện câu gắn sao: làm đúng không gỡ câu sai; câu nhiều đáp án chờ đủ ý', () => {
+    const app = setup({ wrong: { 1: 1 } });
+    app.s.startDrill('starred', [1, 3], false);
+    app.s.drillChoose('A');
+    expect(app.s.wrong).toEqual({ 1: 1 });
+    app.s.drillNext();
+    app.s.drillChoose('A');
+    expect(app.s.drill!.shown).toBe(false);
+    app.s.drillChoose('B');
+    expect(app.s.drill).toMatchObject({ shown: true, correct: true });
+  });
+  it('nộp bài thi: câu sai và bỏ trống vào danh sách câu sai', () => {
+    const app = setup();
+    app.s.startExam({ ...defaultExamConfig([1, 2]), count: 5 });
+    const items = app.s.examCurrent!.items;
+    app.s.examGo(items.findIndex((it) => it.n === 1));
+    app.s.examSelect('A');
+    app.s.submitExam();
+    expect(Object.keys(app.s.wrong).sort()).toEqual(['2', '3']);
+  });
+});

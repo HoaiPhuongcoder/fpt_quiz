@@ -85,7 +85,7 @@ function AboutDialog({ onClose }: { onClose: () => void }) {
             Đây là dự án cá nhân của sinh viên, <b className="text-ink">không phải sản phẩm chính thức</b> và không liên kết với Trường Đại học FPT hay Bộ Giáo dục và Đào tạo. Chữ "FPT" chỉ để cho biết web dành cho sinh viên FPT.
           </li>
           <li>
-            Câu hỏi và đáp án được tổng hợp, kiểm tra cẩn thận nhưng <b className="text-ink">vẫn có thể sai sót</b> và không đảm bảo giống đề thi thật. Đáp án đối chiếu theo giáo trình HCM202 bản 2019 và MLN131 bản 2021. Hãy luôn lấy giáo trình và hướng dẫn của giảng viên làm chuẩn.
+            Câu hỏi và đáp án được tổng hợp, kiểm tra cẩn thận nhưng <b className="text-ink">vẫn có thể sai sót</b> và không đảm bảo giống đề thi thật. Đáp án đối chiếu theo giáo trình HCM202 bản 2019 và MLN131 bản 2021; VNR202 giữ nguyên theo bộ đề sưu tầm, chưa có giải thích. Hãy luôn lấy giáo trình và hướng dẫn của giảng viên làm chuẩn.
           </li>
           <li>Tác giả không chịu trách nhiệm về kết quả thi hay bất kỳ quyết định nào dựa trên nội dung của web.</li>
           <li>Web chỉ dùng để ôn tập. Đừng dùng trong lúc thi và hãy tuân thủ quy chế thi của trường.</li>

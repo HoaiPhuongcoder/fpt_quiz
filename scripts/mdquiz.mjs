@@ -1,17 +1,17 @@
 // Đọc ngân hàng câu hỏi dạng Markdown:
 //   ## Câu 12
 //   Nội dung câu hỏi (có thể nhiều dòng)
-//   - A. Lựa chọn          (chấp nhận cả "- a.")
-//   **Đáp án:** AB (ghi chú tùy chọn)
+//   - A. Lựa chọn          (chấp nhận cả "- a." và "* A.")
+//   **Đáp án:** AB (ghi chú tùy chọn)   (chấp nhận cả "A, D")
 
 const SPAM = /\s*\(\d{3}-\s?\d{3}-\s?\d{4}\)/g;
 const clean = (s) => s.replace(SPAM, '').replace(/\s+/g, ' ').trim();
 
 /** Tách "AB (ghi chú)" / "A(ghi chú)" thành đáp án và ghi chú. */
 function parseAnswer(raw, n) {
-  const m = raw.trim().match(/^([A-Ea-e]+)\s*(?:\((.*)\))?\s*$/s);
+  const m = raw.trim().match(/^([A-Ea-e](?:[\s,]*[A-Ea-e])*)\s*(?:\((.*)\))?\s*$/s);
   if (!m) throw new Error(`Câu ${n}: không đọc được đáp án "${raw}"`);
-  return { a: [...new Set(m[1].toUpperCase())], w: m[2] ? clean(m[2]) : undefined };
+  return { a: [...new Set(m[1].replace(/[\s,]/g, '').toUpperCase())], w: m[2] ? clean(m[2]) : undefined };
 }
 
 export function parseQuizMd(text) {
@@ -31,7 +31,7 @@ export function parseQuizMd(text) {
     const head = line.match(/^##\s+Câu\s+(\d+)\s*$/);
     if (head) { finish(); cur = { n: Number(head[1]), q: [], o: [] }; continue; }
     if (!cur) continue;
-    const opt = line.match(/^-\s+([A-Ea-e])\.\s*(.*)$/);
+    const opt = line.match(/^[-*]\s+([A-Ea-e])\.\s*(.*)$/);
     if (opt) { cur.o.push([opt[1].toUpperCase(), clean(opt[2])]); continue; }
     const ans = line.match(/^\*\*Đáp án:\*\*\s*(.*)$/);
     if (ans) { Object.assign(cur, parseAnswer(ans[1], cur.n)); continue; }
