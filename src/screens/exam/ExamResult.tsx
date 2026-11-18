@@ -8,11 +8,15 @@ import { type Question } from '../../domain/types';
 import { go, href } from '../../store/nav';
 import { roman } from '../../domain/subject';
 import { useChapterIds } from '../../store/hooks';
+import { StarButton } from '../../components/StarButton';
 
 function ReviewItem({ index, item, q, picked }: { index: number; item: ExamItem; q: Question; picked: string[] }) {
   return (
     <Glass className="space-y-2 p-4">
-      <p className="text-xs text-mut">Câu {index + 1} · số {q.n} · Ch. {roman(q.c)}</p>
+      <div className="flex items-center gap-2 text-xs text-mut">
+        <span>Câu {index + 1} · số {q.n} · Ch. {roman(q.c)}</span>
+        <StarButton n={q.n} className="-my-2 ml-auto" />
+      </div>
       <p className="font-semibold">{q.q}</p>
       <div className="grid gap-2">
         {item.order.map((k, i) => {
@@ -33,6 +37,7 @@ export function ExamResultScreen({ id }: { id?: string }) {
   const badges = useApp((s) => s.badges);
   const chapters = useChapterIds();
   const byId = useApp((s) => s.byId);
+  const startDrill = useApp((s) => s.startDrill);
   const [filter, setFilter] = useState<'wrong' | 'all'>('wrong');
 
   if (!result) {
@@ -100,8 +105,13 @@ export function ExamResultScreen({ id }: { id?: string }) {
         {shown.map(({ it, i }) => <ReviewItem key={it.n} index={i} item={it} q={byId[it.n]} picked={result.answers[it.n] ?? []} />)}
       </div>
 
+      {result.wrong.length > 0 && (
+        <NeonButton className="w-full" onClick={() => { startDrill('exam', result.wrong, true); go('/luyen'); }}>
+          Luyện lại {result.wrong.length} câu sai của đề
+        </NeonButton>
+      )}
       <div className="grid grid-cols-2 gap-2">
-        <NeonButton disabled={!result.wrong.length} onClick={() => { go('/hoc'); }}>Ôn câu sai ngay</NeonButton>
+        <NeonButton variant="ghost" disabled={!result.wrong.length} onClick={() => { go('/hoc'); }}>Ôn câu sai ngay</NeonButton>
         <NeonButton variant="ghost" onClick={() => { go('/thi'); }}>Thi lại</NeonButton>
       </div>
     </div>

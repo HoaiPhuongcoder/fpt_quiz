@@ -11,8 +11,8 @@ describe('xuất / nhập', () => {
   it('xuất rồi nhập lại cho cùng dữ liệu, nhiều môn', () => {
     const game = { ...cur.game, xp: 300 };
     const subjects = {
-      hcm202: { cards: { 1: makeCard() }, cfg: cur.cfg, examHistory: [] },
-      mln131: { cards: { 7: makeCard() }, cfg: { ...cur.cfg, newPerDay: 10 }, examHistory: [] },
+      hcm202: { cards: { 1: makeCard() }, cfg: cur.cfg, examHistory: [], starred: [3, 1], wrong: { 2: 1 } },
+      mln131: { cards: { 7: makeCard() }, cfg: { ...cur.cfg, newPerDay: 10 }, examHistory: [], starred: [], wrong: {} },
     };
     expect(parseImport(exportAll(game, subjects), cfgFor, KNOWN)).toEqual({ ok: true, legacy: false, game, subjects });
   });

@@ -7,7 +7,7 @@ import { SubjectSwitcher } from './SubjectSwitcher';
 import { CoffeeFloat, SupportCoffee } from './SupportCoffee';
 
 const TABS: { path: string; label: string; Icon: Icon; match: RouteName[] }[] = [
-  { path: '/', label: 'Trang chủ', Icon: HouseIcon, match: ['home'] },
+  { path: '/', label: 'Trang chủ', Icon: HouseIcon, match: ['home', 'practice'] },
   { path: '/thi', label: 'Thi thử', Icon: TimerIcon, match: ['exam-setup', 'result'] },
   { path: '/thu-vien', label: 'Thư viện', Icon: BooksIcon, match: ['library'] },
   { path: '/tim-kiem', label: 'Tìm kiếm', Icon: MagnifyingGlassIcon, match: ['search'] },

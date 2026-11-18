@@ -1,12 +1,13 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import { useStore } from 'zustand';
-import type { ChapterId, PresetId, Question, Rating, SrsConfig } from '../domain/types';
+import type { ChapterId, PresetId, QRange, Question, Rating, SrsConfig } from '../domain/types';
 import { presetParams, schedule } from '../domain/srs';
 import { pickNext, poolFor } from '../domain/queue';
 import { dayKey, fmt } from '../domain/time';
 import { answerXp, examXp, recordActivity, type GameState } from '../domain/gamify';
 import { badgeDefs, evaluateBadges, unlockBadges, type BadgeDef } from '../domain/badges';
-import { applyExamToCards, createExam, goTo, gradeExam, isExpired, selectOption, toggleFlag, type ExamConfig, type ExamResult } from '../domain/exam';
+import { applyExamToCards, createExam, goTo, gradeExam, isExpired, selectOption, shuffle, toggleFlag, type ExamConfig, type ExamResult } from '../domain/exam';
+import { addWrong, newDrill, normalizeRange, pickOption, removeWrong, type DrillKind, type DrillSession } from '../domain/practice';
 import type { Rng } from '../domain/random';
 import { SNAPSHOT_KEYS, type AppStorage, type Snapshot } from '../storage/local';
 import { exportAll, parseImport, type SubjectData } from '../storage/io';
@@ -29,10 +30,21 @@ export interface AppState extends Snapshot {
   byId: Record<number, Question>;
   now: number;
   study: StudySession;
+  drill: DrillSession | null;
   toasts: Toast[];
   tick(): void;
   switchSubject(id: string): void;
   toggleChapter(c: ChapterId): void;
+  /** Đặt khoảng câu cho phiên học; null = mọi câu. */
+  setRange(r: QRange | null): void;
+  toggleStar(n: number): void;
+  /** Bỏ một câu (hoặc tất cả) khỏi danh sách câu sai. */
+  forgetWrong(n?: number): void;
+  /** Bắt đầu lượt luyện với các câu `ns`; trộn hoặc theo số câu tăng dần. */
+  startDrill(kind: DrillKind, ns: number[], shuffled: boolean): void;
+  drillChoose(key: string): void;
+  drillNext(): void;
+  endDrill(): void;
   startStudy(): void;
   nextCard(): void;
   choose(key: string): void;
@@ -78,7 +90,9 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
   const snap = storage.load(first);
   const badges = badgeDefs(subjects);
   const byIdOf = (sub: Subject) => Object.fromEntries(sub.questions.map((q) => [q.n, q])) as Record<number, Question>;
-  const dataOf = (st: Pick<AppState, 'cards' | 'cfg' | 'examHistory'>): SubjectData => ({ cards: st.cards, cfg: st.cfg, examHistory: st.examHistory });
+  const dataOf = (st: Pick<AppState, 'cards' | 'cfg' | 'examHistory' | 'starred' | 'wrong'>): SubjectData =>
+    ({ cards: st.cards, cfg: st.cfg, examHistory: st.examHistory, starred: st.starred, wrong: st.wrong });
+  const rangeBounds = (qs: Question[]): [number, number] => [Math.min(...qs.map((q) => q.n)), Math.max(...qs.map((q) => q.n))];
 
   const store = createStore<AppState>()((set, get) => {
     const toast = (text: string, kind: Toast['kind'] = 'info') =>
@@ -101,6 +115,7 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
       byId: byIdOf(first),
       now: t0,
       study: emptySession(t0),
+      drill: null,
       toasts: [],
 
       tick() {
@@ -112,9 +127,9 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
       switchSubject(id) {
         const next = find(id);
         if (!next || next.id === get().subject.id) return;
-        const { cards, cfg, day, examCurrent, examHistory } = storage.load(next);
+        const { cards, cfg, day, examCurrent, examHistory, starred, wrong } = storage.load(next);
         const t = now();
-        set({ subject: next, questions: next.questions, byId: byIdOf(next), cards, cfg, day, examCurrent, examHistory, now: t, study: emptySession(t) });
+        set({ subject: next, questions: next.questions, byId: byIdOf(next), cards, cfg, day, examCurrent, examHistory, starred, wrong, now: t, study: emptySession(t), drill: null });
         storage.saveActive(next.id);
       },
 
@@ -122,6 +137,58 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
         const chs = get().cfg.chs;
         const next = chs.includes(c) ? chs.filter((x) => x !== c) : [...chs, c].sort((a, b) => a - b);
         if (next.length) set({ cfg: { ...get().cfg, chs: next } });
+      },
+
+      setRange(r) {
+        const [lo, hi] = rangeBounds(get().questions);
+        set({ cfg: { ...get().cfg, range: r && normalizeRange(r, lo, hi) } });
+      },
+
+      toggleStar(n) {
+        const st = get().starred;
+        set({ starred: st.includes(n) ? st.filter((x) => x !== n) : [...st, n] });
+      },
+
+      forgetWrong(n) {
+        set({ wrong: n == null ? {} : removeWrong(get().wrong, n) });
+      },
+
+      startDrill(kind, ns, shuffled) {
+        const ids = [...new Set(ns)].filter((n) => get().byId[n]);
+        if (!ids.length) return;
+        set({ drill: newDrill(kind, shuffled ? shuffle(ids, rand) : ids.sort((a, b) => a - b)) });
+      },
+
+      drillChoose(key) {
+        const s = get();
+        const d = s.drill;
+        if (!d || d.shown || d.i >= d.queue.length || d.picked.includes(key)) return;
+        const n = d.queue[d.i];
+        const r = pickOption(s.byId[n], d.picked, key);
+        if (!r.done) { set({ drill: { ...d, picked: r.picked } }); return; }
+        const t = now();
+        const combo = r.correct ? d.combo + 1 : 0;
+        const xp = answerXp(r.correct, combo);
+        // Làm đúng khi luyện câu sai thì gỡ khỏi danh sách; làm sai ở đâu cũng ghi vào.
+        const wrong = !r.correct ? addWrong(s.wrong, [n]) : d.kind === 'wrong' ? removeWrong(s.wrong, n) : s.wrong;
+        const act = recordActivity({ ...s.game, xp: s.game.xp + xp, bestCombo: Math.max(s.game.bestCombo, combo) }, dayKey(t), { reviewed: 1 });
+        const { game } = settle(act.game, act.goalJustHit, s.cards, { hour: new Date(t).getHours() }, t);
+        set({
+          wrong, game, now: t,
+          drill: {
+            ...d, picked: r.picked, shown: true, correct: r.correct, combo, xp: d.xp + xp,
+            right: r.correct ? [...d.right, n] : d.right, missed: r.correct ? d.missed : [...d.missed, n],
+          },
+        });
+      },
+
+      drillNext() {
+        const d = get().drill;
+        if (d && d.shown) set({ drill: { ...d, i: d.i + 1, picked: [], shown: false, correct: false } });
+      },
+
+      endDrill() {
+        set({ drill: null });
       },
 
       startStudy() {
@@ -132,7 +199,7 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
       nextCard() {
         const s = get();
         const t = now();
-        const n = pickNext(poolFor(s.questions, s.cfg.chs), s.cards, t, {
+        const n = pickNext(poolFor(s.questions, s.cfg.chs, s.cfg.range), s.cards, t, {
           newPerDay: s.cfg.newPerDay, newSeen: s.day.newSeen, order: s.cfg.order, ahead: s.study.ahead, rand,
         });
         set({ study: { ...s.study, cur: n, picked: [], shown: false, correct: false, lastXp: null } });
@@ -142,13 +209,11 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
         const s = get();
         const st = s.study;
         if (st.cur == null || st.shown || st.picked.includes(key)) return;
-        const q = s.byId[st.cur];
-        const picked = [...st.picked, key];
-        if (q.a.includes(key) && picked.length < q.a.length) {
+        const { picked, done, correct } = pickOption(s.byId[st.cur], st.picked, key);
+        if (!done) {
           set({ study: { ...st, picked } });
           return;
         }
-        const correct = picked.length === q.a.length && picked.every((k) => q.a.includes(k));
         const combo = correct ? st.combo + 1 : 0;
         const xp = answerXp(correct, combo);
         set({
@@ -157,6 +222,7 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
             correctCount: st.correctCount + (correct ? 1 : 0), xp: st.xp + xp, bestCombo: Math.max(st.bestCombo, combo), lastXp: xp,
           },
           game: { ...s.game, xp: s.game.xp + xp, bestCombo: Math.max(s.game.bestCombo, combo) },
+          ...(correct ? {} : { wrong: addWrong(s.wrong, [st.cur]) }),
         });
       },
 
@@ -220,7 +286,7 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
         const act = recordActivity({ ...s.game, xp: s.game.xp + xp }, dayKey(t), { examsDone: 1, examQuestions: graded.answeredCount });
         const { game, ids } = settle(act.game, act.goalJustHit, cards, { lastExamScore: graded.score10 }, t);
         const result: ExamResult = { ...graded, xp, newBadges: ids };
-        set({ cards, game, now: t, examCurrent: null, examHistory: [result, ...s.examHistory].slice(0, EXAM_HISTORY_LIMIT) });
+        set({ cards, game, now: t, examCurrent: null, examHistory: [result, ...s.examHistory].slice(0, EXAM_HISTORY_LIMIT), wrong: addWrong(s.wrong, graded.wrong) });
         toast(`Nộp bài: ${result.score10} điểm · +${xp} XP`, 'xp');
         return result;
       },
@@ -281,7 +347,7 @@ export function createAppStore(deps: AppDeps): StoreApi<AppState> {
 
       resetSubject() {
         const t = now();
-        set({ cards: {}, examCurrent: null, examHistory: [], day: { d: dayKey(t), newSeen: 0, done: 0, ok: 0 }, study: emptySession(t) });
+        set({ cards: {}, examCurrent: null, examHistory: [], starred: [], wrong: {}, day: { d: dayKey(t), newSeen: 0, done: 0, ok: 0 }, study: emptySession(t), drill: null });
       },
 
       pushToast: toast,

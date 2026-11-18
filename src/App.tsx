@@ -12,6 +12,8 @@ import { Library } from './screens/Library';
 import { Search } from './screens/Search';
 import { Profile } from './screens/Profile';
 import { Settings } from './screens/settings/Settings';
+import { Practice } from './screens/practice/Practice';
+import { Drill } from './screens/practice/Drill';
 import { replaceTo } from './store/nav';
 
 function Screen({ route }: { route: Route }) {
@@ -33,6 +35,10 @@ function Screen({ route }: { route: Route }) {
       return <Profile />;
     case 'settings':
       return <Settings />;
+    case 'practice':
+      return <Practice tab={route.param} />;
+    case 'drill':
+      return <Drill />;
     default:
       return <Home />;
   }
@@ -71,7 +77,7 @@ export function App() {
     document.title = `Ôn ${subject.code}`;
   }, [subject.code]);
 
-  const full = route.name === 'study' || route.name === 'exam';
+  const full = route.name === 'study' || route.name === 'exam' || route.name === 'drill';
   return (
     <>
       {full ? <Screen key={subject.id} route={route} /> : <AppShell active={route.name}><Screen key={subject.id} route={route} /></AppShell>}

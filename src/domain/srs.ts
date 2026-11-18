@@ -14,7 +14,7 @@ export function presetParams(id: PresetId): SrsParams {
   };
 }
 
-export const DEFAULT_CONFIG: SrsConfig = { preset: 'cram', ...presetParams('cram'), newPerDay: 80, chs: [], order: 'random' };
+export const DEFAULT_CONFIG: SrsConfig = { preset: 'cram', ...presetParams('cram'), newPerDay: 80, chs: [], range: null, order: 'random' };
 
 /**
  * Chấm một thẻ: 1 Lại, 2 Khó, 3 Được, 4 Dễ. Trả về [thẻ mới, khoảng cách (phút)].

@@ -1,10 +1,11 @@
-import type { Cards, SrsConfig } from '../domain/types';
+import type { Cards, SrsConfig, WrongMap } from '../domain/types';
+import { readStarred, readWrong } from './local';
 import { freshGame, type GameState } from '../domain/gamify';
 import type { ExamResult } from '../domain/exam';
 
-export interface SubjectData { cards: Cards; cfg: SrsConfig; examHistory: ExamResult[] }
-/** Phần nhập của một môn; thiếu `examHistory` (bản cũ QUIZ.html) thì giữ lịch sử hiện có. */
-export type SubjectImport = Omit<SubjectData, 'examHistory'> & { examHistory?: ExamResult[] };
+export interface SubjectData { cards: Cards; cfg: SrsConfig; examHistory: ExamResult[]; starred: number[]; wrong: WrongMap }
+/** Phần nhập của một môn; thiếu trường nào (bản cũ) thì giữ dữ liệu hiện có của trường đó. */
+export type SubjectImport = Pick<SubjectData, 'cards' | 'cfg'> & Partial<Pick<SubjectData, 'examHistory' | 'starred' | 'wrong'>>;
 export type ImportResult =
   | { ok: true; legacy: boolean; game?: GameState; subjects: Record<string, SubjectImport> }
   | { ok: false; error: string };
@@ -45,7 +46,11 @@ export function parseImport(text: string, cfgFor: (id: string) => SrsConfig, kno
     for (const [id, d] of Object.entries(o.subjects)) {
       if (!known.includes(id) || !isObj(d)) continue;
       if (!validCards(d.cards)) return { ok: false, error: `Tiến độ thẻ của môn ${id} không hợp lệ.` };
-      subjects[id] = { cards: d.cards, cfg: readCfg(d.cfg, cfgFor(id)), examHistory: readHistory(d.examHistory) };
+      const starred = readStarred(d.starred), wrong = readWrong(d.wrong);
+      subjects[id] = {
+        cards: d.cards, cfg: readCfg(d.cfg, cfgFor(id)), examHistory: readHistory(d.examHistory),
+        ...(starred ? { starred } : {}), ...(wrong ? { wrong } : {}),
+      };
     }
     return { ok: true, legacy: false, game: readGame(o.game), subjects };
   }

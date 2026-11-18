@@ -7,6 +7,7 @@ import { type ChapterId, type Question } from '../domain/types';
 import { highlight, parseQuery, searchQuestions } from '../domain/search';
 import { roman } from '../domain/subject';
 import { useChapterIds } from '../store/hooks';
+import { StarButton } from '../components/StarButton';
 
 const PAGE = 30;
 const EXAMPLES = ['đoàn kết', 'cần kiệm liêm chính', '"đảng cầm quyền"', '577'];
@@ -36,6 +37,7 @@ function ResultCard({ q, terms, explain, onJump }: { q: Question; terms: string[
         <span>Ch.{roman(q.c)}</span>
         <StatusPill card={card} />
         {q.a.length > 1 && <span>nhiều đáp án (chọn {q.a.length})</span>}
+        <StarButton n={q.n} className="-my-2 ml-auto" />
       </div>
       <p className="font-semibold leading-relaxed"><Marked text={q.q} terms={terms} /></p>
       <ul className="grid gap-1.5" aria-label={`Phương án câu ${q.n}`}>

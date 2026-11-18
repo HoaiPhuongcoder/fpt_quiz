@@ -10,7 +10,7 @@ export function SubjectSwitcher({ className = '' }: { className?: string }) {
   const pick = (id: string) => {
     if (id === subject.id) return;
     const r = parsePath(location.pathname, subjects.map((s) => s.id));
-    const path = r.name === 'result' || r.name === 'exam' ? '/thi' : routePath(r);
+    const path = r.name === 'result' || r.name === 'exam' ? '/thi' : r.name === 'drill' ? '/luyen-tap' : routePath(r);
     navigate(`/${id}${path}`);
   };
 
@@ -34,7 +34,8 @@ export function SubjectSwitcher({ className = '' }: { className?: string }) {
               aria-checked={on}
               aria-label={`${s.code} – ${s.name}`}
               onClick={() => pick(s.id)}
-              className={`flex min-h-14 min-w-0 items-center gap-2.5 rounded-2xl border px-3 py-2 text-left transition ${
+              title={s.name}
+              className={`flex min-h-14 min-w-0 items-center gap-1.5 rounded-2xl border px-2.5 py-2 text-left transition sm:gap-2.5 sm:px-3 ${
                 on
                   ? 'border-violet bg-violet/20 shadow-[0_0_0_1px_var(--color-violet)]'
                   : 'border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/10'
@@ -42,12 +43,12 @@ export function SubjectSwitcher({ className = '' }: { className?: string }) {
             >
               <span className="min-w-0 flex-1">
                 <span className={`block font-bold ${on ? 'text-ink' : 'text-mut'}`}>{s.code}</span>
-                <span className="block text-xs leading-snug text-mut">{s.name}</span>
+                <span className="line-clamp-2 text-[11px] leading-snug text-mut sm:text-xs">{s.name}</span>
               </span>
               {on ? (
-                <CheckCircleIcon size={22} weight="fill" className="shrink-0 text-violet-soft" />
+                <CheckCircleIcon size={20} weight="fill" className="shrink-0 text-violet-soft" />
               ) : (
-                <span aria-hidden className="size-5 shrink-0 rounded-full border-2 border-white/20" />
+                <span aria-hidden className="size-4 shrink-0 rounded-full border-2 border-white/20 sm:size-5" />
               )}
             </button>
           );

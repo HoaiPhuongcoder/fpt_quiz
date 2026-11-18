@@ -1,10 +1,11 @@
 import { useMemo, useSyncExternalStore } from 'react';
 
-export type RouteName = 'home' | 'exam-setup' | 'library' | 'search' | 'profile' | 'settings' | 'study' | 'exam' | 'result';
+export type RouteName = 'home' | 'exam-setup' | 'library' | 'search' | 'profile' | 'settings' | 'study' | 'exam' | 'result' | 'practice' | 'drill';
 export interface Route { subject?: string; name: RouteName; param?: string }
 
 const PATHS: Record<string, RouteName> = {
   '': 'home', hoc: 'study', thi: 'exam-setup', 'lam-bai': 'exam', 'thu-vien': 'library', 'tim-kiem': 'search', 'ho-so': 'profile', 'cai-dat': 'settings',
+  'luyen-tap': 'practice', luyen: 'drill',
 };
 
 const SLUG: Record<RouteName, string> = Object.fromEntries(Object.entries(PATHS).map(([k, v]) => [v, k])) as Record<RouteName, string>;
@@ -15,7 +16,8 @@ export function parsePath(path: string, subjectIds: readonly string[] = []): Rou
   const parts = path.replace(/^#/, '').replace(/^\/+/, '').split('/');
   const subject = subjectIds.includes(parts[0]) ? parts.shift() : undefined;
   const [first = '', second] = parts;
-  const route: Route = first === 'ket-qua' ? { name: 'result', param: second } : { name: PATHS[first] ?? 'home' };
+  const name: RouteName = first === 'ket-qua' ? 'result' : PATHS[first] ?? 'home';
+  const route: Route = name === 'result' || (name === 'practice' && second) ? { name, param: second } : { name };
   return subject ? { subject, ...route } : route;
 }
 
